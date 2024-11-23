@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + TS</title>
+  </head>
+  <body>
+    <div id="app">
+      <div id="layers">
+        <div id="selectTool"></div>
+      </div>
+      <div id="drawnLayer"></div>
+    </div>
+
+    <div id="disup">
+      <button class="tool-button" id="seltool">Select</button>
+      <button class="tool-button" onclick="setState('ISDASH', false)">
+        Line
+      </button>
+      <button class="tool-button" onclick="setState('ISDASH', true)">
+        DashLine
+      </button>
+      <button class="tool-button">Rect</button>
+      <button class="tool-button">Oval</button>
+      <button class="tool-button">Tria</button>
+      <button class="toggle-button" data-config="SHIFTTOOL">SHIFTTOOL</button>
+      <button class="toggle-button" data-config="FILLTOOL">FILLTOOL</button>
+      <button class="toggle-button" data-config="SNAP_RIGHT">SNAP_RIGHT</button>
+      <button class="util-button" id="export">Save</button>
+      <button class="util-button" id="import">Load</button>
+      <button>
+        COLOR
+        <input
+          type="color"
+          id="color"
+          style="
+            border: none;
+            padding: 0px;
+            margin: 0px;
+            outline: none;
+            background: none;
+            height: 1.2em;
+          "
+        />
+      </button>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

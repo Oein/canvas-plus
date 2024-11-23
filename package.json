@@ -1,0 +1,19 @@
+{
+  "name": "paint",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.2",
+    "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "clipper-lib": "^6.4.2",
+    "lazy-brush": "^2.0.2"
+  }
+}
