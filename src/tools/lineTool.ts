@@ -59,7 +59,7 @@ export class LineTool implements PenType {
         }
       }
 
-      if (getState("SHIFT")) {
+      if (getState("SHIFT") || getState("SHIFTTOOL")) {
         const dx = Math.abs(x - startX);
         const dy = Math.abs(y - startY);
         if (dx > dy) {
@@ -106,7 +106,7 @@ export class LineTool implements PenType {
         }
       }
 
-      if (getState("SHIFT")) {
+      if (getState("SHIFT") || getState("SHIFTTOOL")) {
         const dx = Math.abs(x - startX);
         const dy = Math.abs(y - startY);
         if (dx > dy) {
