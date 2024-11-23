@@ -61,8 +61,6 @@ export type IDrawPolygon = {
 };
 
 export type IDraw =
-  | IDrawLine
-  | IDrawRect
-  | IDrawTriangle
-  | IDrawImage
-  | IDrawPolygon;
+  | (IDrawLine | IDrawRect | IDrawTriangle | IDrawImage | IDrawPolygon) & {
+      z?: number;
+    };

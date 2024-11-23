@@ -8,6 +8,7 @@ import { getInstance } from "../main";
 import { IDrawLine } from "../types/draw";
 import CONFIG from "../utils/config";
 import { getState } from "../utils/state";
+import zIndex from "../utils/zIndexManager";
 import { IProps, PenType } from "./toolType";
 
 export class SelectTool implements PenType {
@@ -133,10 +134,12 @@ export class SelectTool implements PenType {
 
     context.setLineDash([]);
   }
-  resize_drawGhost(poly: Polygon, key: string) {
+  resize_drawGhost(poly: Polygon, key: string, zIndex: number) {
     const inst = getInstance();
     const context = inst.drawnLayers[key].t;
     const object = inst.drawnLayers[key].d;
+
+    context.canvas.style.zIndex = zIndex.toString();
 
     if (object.type == "line") return this.resize_drawLineGhost(key);
     if (object.type == "image") return;
@@ -256,13 +259,14 @@ export class SelectTool implements PenType {
 
     // ghost draw
     const inst = getInstance();
+    const zi = zIndex();
     for (let i = 0; i < this.selectedObjects.length; i++) {
       let poly = inst.drawnPolygons[this.selectedObjects[i]];
       poly = poly.map((p) => ({
         x: this.bbox[0].x + (p.x - this.bbox[0].x) * scaleX,
         y: this.bbox[0].y + (p.y - this.bbox[0].y) * scaleY,
       }));
-      this.resize_drawGhost(poly, this.selectedObjects[i]);
+      this.resize_drawGhost(poly, this.selectedObjects[i], zi);
     }
     this.bboxElement!.style.width = `${BBOX_WIDTH * scaleX}px`;
     this.bboxElement!.style.height = `${BBOX_HEIGHT * scaleY}px`;
@@ -326,10 +330,11 @@ export class SelectTool implements PenType {
 
     context.setLineDash([]);
   }
-  rotate_drawGhost(poly: Polygon, key: string) {
+  rotate_drawGhost(poly: Polygon, key: string, zIndex: number) {
     const inst = getInstance();
     const context = inst.drawnLayers[key].t;
     const object = inst.drawnLayers[key].d;
+    context.canvas.style.zIndex = zIndex.toString();
 
     if (object.type == "line") return;
     if (object.type == "image") return;
@@ -401,6 +406,7 @@ export class SelectTool implements PenType {
 
     this.bboxElement!.style.transform = `rotate(${angle}deg)`;
     this.bboxRotate = angle;
+    const zi = zIndex();
     for (let i = 0; i < this.selectedObjects.length; i++) {
       const objectType =
         getInstance().drawnLayers[this.selectedObjects[i]].d.type;
@@ -431,7 +437,8 @@ export class SelectTool implements PenType {
           },
           angle
         ),
-        this.selectedObjects[i]
+        this.selectedObjects[i],
+        zi
       );
     }
   }
@@ -472,6 +479,7 @@ export class SelectTool implements PenType {
             strokeColor: "transparent",
             strokeWidth: 0,
             type: "polygon",
+            z: object.z,
           };
           break;
       }
@@ -518,11 +526,13 @@ export class SelectTool implements PenType {
     })();
 
     if (!DO_RENDER) return;
+    const zi = zIndex();
     for (let i = 0; i < this.selectedObjects.length; i++) {
       inst.transform(
         this.selectedObjects[i],
         dx * CONFIG.SCALE,
-        dy * CONFIG.SCALE
+        dy * CONFIG.SCALE,
+        zi
       );
       inst.rerender(this.selectedObjects[i]);
     }

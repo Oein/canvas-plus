@@ -10,6 +10,7 @@ import { TriangleTool } from "./tools/triangleTool";
 import { IDraw } from "./types/draw";
 import Instance from "./instance";
 import { SelectTool } from "./tools/selectTool";
+import zIndex from "./utils/zIndexManager";
 
 const inst = await (false
   ? await fetch("/nocanvas.bin")
@@ -92,6 +93,7 @@ const main = () => {
             rotate: 0,
             width: width * scale,
             height: height * scale,
+            z: zIndex(),
           });
         };
       };

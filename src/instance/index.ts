@@ -11,6 +11,7 @@ import {
 } from "../types/draw";
 import CONFIG from "../utils/config";
 import { createCanvas } from "../utils/createCanvas";
+import zIndex from "../utils/zIndexManager";
 
 type IDrawnLayer = {
   // canvas
@@ -188,6 +189,7 @@ export default class Instance {
         strokeColor: "transparent",
         strokeWidth: 0,
         type: "polygon",
+        z: object.z,
       };
       this.drawnLayers[id].d = layer.d;
       // draw as polygon
@@ -197,7 +199,12 @@ export default class Instance {
     this.drawnPolygons[id] = polygon;
   }
 
-  transform(id: string, dx: number, dy: number) {
+  transform(id: string, dx: number, dy: number, nzi?: number) {
+    if (typeof nzi === "number") {
+      this.drawnLayers[id].c.style.zIndex = nzi.toString();
+      this.drawnLayers[id].d.z = nzi;
+      console.log("ZINDEX", nzi);
+    }
     this.drawnPolygons[id] = this.drawnPolygons[id].map((p) => {
       return { x: p.x + dx, y: p.y + dy };
     });
@@ -238,6 +245,7 @@ export default class Instance {
 
     if (typeof canvas == "string") return;
     canvas.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
+    canvas.canvas.style.zIndex = (object.z || zIndex()).toString();
     let polygon: Polygon = [];
 
     switch (object.type) {
@@ -284,6 +292,7 @@ export default class Instance {
         strokeColor: "transparent",
         strokeWidth: 0,
         type: "polygon",
+        z: object.z,
       };
       this.drawnLayers[objectid].d = object;
       // draw as polygon
@@ -297,6 +306,8 @@ export default class Instance {
   fabricAdd(object: IDraw) {
     const id = Math.random().toString(36).substr(2, 9);
 
+    object.z = object.z || zIndex();
+
     const [drawCanvas, context] = createCanvas();
     drawCanvas.width = CONFIG.SCALE * window.innerWidth;
     drawCanvas.height = CONFIG.SCALE * window.innerHeight;
@@ -305,7 +316,7 @@ export default class Instance {
     drawCanvas.style.left = "0";
     drawCanvas.style.width = "100vw";
     drawCanvas.style.height = "100vh";
-    drawCanvas.style.zIndex = "100000";
+    drawCanvas.style.zIndex = object.z.toString();
     drawCanvas.setAttribute("data-id", id);
 
     this.drawnLayerParent.appendChild(drawCanvas);
