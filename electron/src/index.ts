@@ -42,7 +42,7 @@ const createWindow = () => {
   });
 
   ipcMain.on("btp", (event, arg) => {
-    mainWindow.show();
+    mainWindow.maximize();
     capWin.close();
   });
 
@@ -79,13 +79,13 @@ const createWindow = () => {
       }).then((img) => {
         pngBuf = img;
         mainWindow.webContents.send("cap", dd);
-        mainWindow.show();
+        mainWindow.maximize();
       });
     }, 50);
   });
 
   ipcMain.on("wincap", (event, arg) => {
-    mainWindow.hide();
+    mainWindow.minimize();
 
     capWin = new BrowserWindow({
       width: 100,
