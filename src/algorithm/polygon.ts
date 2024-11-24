@@ -61,24 +61,6 @@ function getPolygonIntersection(
   return result;
 }
 
-// 사용 예시
-const polygon1: Point[] = [
-  { x: 0, y: 0 },
-  { x: 10, y: 0 },
-  { x: 10, y: 10 },
-  { x: 0, y: 10 },
-];
-
-const polygon2: Point[] = [
-  { x: 5, y: 5 },
-  { x: 15, y: 5 },
-  { x: 15, y: 15 },
-  { x: 5, y: 15 },
-];
-
-const intersection = getPolygonIntersection(polygon1, polygon2);
-console.log(intersection);
-
 export function polygonArea(p: Polygon) {
   var len = p.length;
   var s = 0;

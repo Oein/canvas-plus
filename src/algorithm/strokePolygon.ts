@@ -171,18 +171,3 @@ export default function createThickPolygon(
     // outin.outer[0],
   ];
 }
-
-// 예시 점들
-const points: Point[] = [
-  { x: 0, y: 0 },
-  { x: 100, y: 50 },
-  { x: 200, y: 50 },
-  { x: 250, y: 0 },
-];
-
-// 두께가 3인 Polygon을 구함
-const thickness = 3;
-const polygon = createThickPolygon(points, thickness);
-
-// 결과 출력
-console.log(polygon);

@@ -17,7 +17,7 @@ export class EraseTool implements PenType {
   state: "ERASE" | "NONE" = "NONE";
 
   apply() {
-    console.log("ExampleTool Apply");
+    console.log("EraseTool Apply");
     const mouseDown = () => {
       this.state = "ERASE";
     };
@@ -34,7 +34,6 @@ export class EraseTool implements PenType {
 
         const isInPoly = isPointInPolygon({ x, y }, poly);
         isInPoly && inst.removeLayer(key);
-        console.log(isInPoly, key);
       }
     };
     const mouseUp = () => {
