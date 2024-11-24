@@ -347,6 +347,14 @@ export default class Instance {
     return id;
   }
 
+  removeLayer(id: string) {
+    const layer = this.drawnLayers[id];
+    if (!layer) return;
+    layer.c.remove();
+    delete this.drawnLayers[id];
+    delete this.drawnPolygons[id];
+  }
+
   async exportInstance() {
     const exportData: string[] = [];
     const imageList: ArrayBuffer[] = [];

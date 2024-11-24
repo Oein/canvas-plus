@@ -1,3 +1,6 @@
+import { isPointInPolygon } from "../algorithm/pointInPoly";
+import { getInstance } from "../main";
+import CONFIG from "../utils/config";
 import { IProps, PenType } from "./toolType";
 
 export class EraseTool implements PenType {
@@ -18,7 +21,22 @@ export class EraseTool implements PenType {
     const mouseDown = () => {
       this.state = "ERASE";
     };
-    const mouseMove = () => {};
+    const mouseMove = (e: MouseEvent) => {
+      if (this.state !== "ERASE") return;
+      const x = e.offsetX * CONFIG.SCALE;
+      const y = e.offsetY * CONFIG.SCALE;
+
+      const inst = getInstance();
+      const keys = Object.keys(inst.drawnLayers);
+      for (let i = keys.length - 1; i >= 0; i--) {
+        const key = keys[i];
+        const poly = inst.drawnPolygons[key];
+
+        const isInPoly = isPointInPolygon({ x, y }, poly);
+        isInPoly && inst.removeLayer(key);
+        console.log(isInPoly, key);
+      }
+    };
     const mouseUp = () => {
       this.state = "NONE";
     };
