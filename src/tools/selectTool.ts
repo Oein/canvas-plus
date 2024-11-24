@@ -6,7 +6,7 @@ import rotateRect from "../algorithm/rotateImage";
 import rotateLine from "../algorithm/rotateLine";
 import rotatePolygon from "../algorithm/rotatePolygon";
 import createThickPolygon from "../algorithm/strokePolygon";
-import { getInstance } from "../main";
+import { getInstance, transform } from "../main";
 import { IDrawImage, IDrawLine } from "../types/draw";
 import CONFIG from "../utils/config";
 import { getState } from "../utils/state";
@@ -612,7 +612,7 @@ export class SelectTool implements PenType {
     if (!DO_RENDER) return;
     const zi = zIndex();
     for (let i = 0; i < this.selectedObjects.length; i++) {
-      inst.transform(
+      transform(
         this.selectedObjects[i],
         dx * CONFIG.SCALE,
         dy * CONFIG.SCALE,

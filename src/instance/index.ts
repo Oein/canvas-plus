@@ -23,6 +23,15 @@ type IDrawnLayer = {
   d: IDraw;
 };
 
+type IDrawnHistory = {
+  // canvas
+  c: HTMLCanvasElement;
+  // ctx
+  t: CanvasRenderingContext2D;
+  // draw object
+  d: string;
+};
+
 export default class Instance {
   instanceElement: HTMLDivElement;
   drawnLayerParent: HTMLDivElement;
@@ -30,7 +39,7 @@ export default class Instance {
   drawnPolygons: { [key: string]: Polygon } = {};
 
   history: {
-    idraw: { [key: string]: IDrawnLayer };
+    idraw: { [key: string]: IDrawnHistory };
     ipoly: { [key: string]: Polygon };
   }[] = [
     {
@@ -38,21 +47,56 @@ export default class Instance {
       ipoly: {},
     },
   ];
-  undoing = false;
+
+  clonedLayer() {
+    // @ts-ignore
+    let ret: { [key: string]: IDrawnHistory } = {};
+    const keys = Object.keys(this.drawnLayers);
+    for (const key of keys) {
+      ret[key] = {
+        c: this.drawnLayers[key].c,
+        t: this.drawnLayers[key].t,
+        d: JSON.stringify(this.drawnLayers[key].d),
+      };
+    }
+    return ret;
+  }
 
   saveAsHistory() {
+    console.log(
+      { ...this.history[this.history.length - 1].idraw },
+      this.drawnLayers
+    );
     this.history.push({
-      idraw: { ...this.drawnLayers },
+      idraw: this.clonedLayer(),
       ipoly: { ...this.drawnPolygons },
     });
-    this.undoing = false;
     if (this.history.length > CONFIG.MAX_HISTORY) {
       this.history.shift();
     }
+    console.log("APD HIS");
+  }
+
+  drawnHistory2drawnLayer(history: { [key: string]: IDrawnHistory }): {
+    [key: string]: IDrawnLayer;
+  } {
+    // @ts-ignore
+    const ret: { [key: string]: IDrawnLayer } = {};
+    const keys = Object.keys(history);
+    for (const key of keys) {
+      // @ts-ignore
+      ret[key] = {
+        c: history[key].c,
+        t: history[key].t,
+        d: JSON.parse(history[key].d),
+      };
+    }
+
+    return ret;
   }
 
   undo() {
-    if (this.history.length < 2 || this.undoing) {
+    if (this.history.length < 2) {
       return;
     }
     this.history.pop();
@@ -60,13 +104,16 @@ export default class Instance {
     if (!history) {
       return;
     }
+
+    console.log("FROM", { ...this.drawnLayers }, "TO", { ...history.idraw });
+
     const keys = Object.keys(this.drawnLayers);
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
       this.removeLayer(key);
     }
 
-    this.drawnLayers = history.idraw;
+    this.drawnLayers = this.drawnHistory2drawnLayer(history.idraw);
     this.drawnPolygons = history.ipoly;
     const keys2 = Object.keys(this.drawnLayers);
     for (let i = 0; i < keys2.length; i++) {

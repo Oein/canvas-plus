@@ -15,41 +15,70 @@
     </div>
 
     <div id="disup">
-      <button class="tool-button" id="seltool">Select</button>
-      <button class="tool-button" onclick="setState('ISDASH', false)">
-        Line
-      </button>
-      <button class="tool-button" onclick="setState('ISDASH', true)">
-        DashLine
-      </button>
-      <button class="tool-button">Rect</button>
-      <button class="tool-button">Oval</button>
-      <button class="tool-button">Tria</button>
-      <button class="tool-button">Erase</button>
-      <button class="tool-button">Pen</button>
+      <button class="tool-button" id="seltool">선택</button>
+      <button class="util-button" id="undo">언두</button>
+
+      <div class="colorwrp focus">
+        <div class="colorbtn"></div>
+        <input type="color" value="#000" />
+      </div>
+
+      <div class="colorwrp">
+        <div class="colorbtn"></div>
+        <input type="color" value="#f01010" />
+      </div>
+
+      <div class="colorwrp">
+        <div class="colorbtn"></div>
+        <input type="color" value="#1010f0" />
+      </div>
+
+      <div id="pagition">
+        <button id="left">&larr;</button>
+        <button id="pageindi">1/1</button>
+        <button id="right">&rarr;</button>
+      </div>
+
+      <div id="strokes">
+        <div class="strkel">
+          <div class="stk" style="width: 0.2rem"></div>
+        </div>
+
+        <div class="strkel">
+          <div class="stk" style="width: 0.4rem"></div>
+        </div>
+
+        <div class="strkel">
+          <div class="stk" style="width: 0.8rem"></div>
+        </div>
+
+        <div class="selstk" id="selstk"></div>
+      </div>
+
+      <div id="tools">
+        <button class="tool-button">펜</button>
+        <button class="tool-button">지우개</button>
+
+        <button class="tool-button" onclick="setState('ISDASH', false)">
+          선
+        </button>
+        <button class="tool-button" onclick="setState('ISDASH', true)">
+          드르륵
+        </button>
+        <button class="tool-button">원</button>
+        <button class="tool-button">삼</button>
+        <button class="tool-button">사</button>
+        <!-- 
       <button class="toggle-button" data-config="SHIFTTOOL">SHIFTTOOL</button>
       <button class="toggle-button" data-config="FILLTOOL">FILLTOOL</button>
-      <button class="toggle-button" data-config="SNAP_RIGHT">SNAP_RIGHT</button>
-      <br />
-      <button class="util-button" id="export">Save</button>
-      <button class="util-button" id="import">Load</button>
-      <button class="util-button" id="undo">UNDO</button>
-      <button>
-        COLOR
-        <input
-          type="color"
-          id="color"
-          style="
-            border: none;
-            padding: 0px;
-            margin: 0px;
-            outline: none;
-            background: none;
-            height: 1.2em;
-          "
-        />
-      </button>
-      <button>
+      <button class="toggle-button" data-config="SNAP_RIGHT">SNAP_RIGHT</button> -->
+
+        <button class="util-button" id="export">저장</button>
+        <button class="util-button" id="import">로드</button>
+        <button class="util-button" id="wincap">캡쳐</button>
+      </div>
+
+      <!-- <button>
         STROKE
         <input
           type="number"
@@ -64,10 +93,7 @@
             height: 1.2em;
           "
         />
-      </button>
-      <button id="left">LEFT</button>
-      <button id="pageindi">1/1</button>
-      <button id="right">RIGHT</button>
+      </button> -->
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
