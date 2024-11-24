@@ -1,6 +1,6 @@
 const state: any = {
   PENCOLOR: "#000000",
-  PENSTROKE: 12,
+  PENSTROKE: 3,
   DASHLINE: [12, 18],
   ISDASH: false,
   SNAP_RIGHT: true,

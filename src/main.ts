@@ -11,17 +11,20 @@ import { IDraw } from "./types/draw";
 import Instance from "./instance";
 import { SelectTool } from "./tools/selectTool";
 import zIndex from "./utils/zIndexManager";
+import { EraseTool } from "./tools/eraseTool";
 
-const inst = await (false
-  ? await fetch("/nocanvas.bin")
-  : await fetch("/7753b615-0930-4147-ba39-e220fdb1a3f2")
-).arrayBuffer();
+// const inst = await (false
+//   ? await fetch("/nocanvas.bin")
+//   : await fetch("/7753b615-0930-4147-ba39-e220fdb1a3f2")
+// ).arrayBuffer();
 
 const instances: Instance[] = [new Instance()];
 let currentInstance = 0;
 export let getInstance = () => instances[currentInstance];
-export let fabricAdd = (object: IDraw) =>
+export let fabricAdd = (object: IDraw) => {
   instances[currentInstance].fabricAdd(object);
+  console.log("Add object!", currentInstance, object);
+};
 
 export let exportInstance = async () => {
   const str = await instances[0].exportInstance();
@@ -57,10 +60,17 @@ const main = () => {
 
   const [drawCanvas, context] = createCanvas();
   drawCanvas.id = "draw-layer";
+  drawCanvas.addEventListener("mousedown", () => {
+    document.getElementById("disup")?.classList.add("hide");
+  });
+  drawCanvas.addEventListener("mouseup", () => {
+    document.getElementById("disup")?.classList.remove("hide");
+  });
   document.getElementById("drawnLayer")?.appendChild(drawCanvas);
 
   const drawnLayer = document.getElementById("drawnLayer");
-  drawnLayer?.appendChild(instances[0].instanceElement);
+  if (!drawnLayer) return;
+  drawnLayer.appendChild(instances[0].instanceElement);
 
   // paste image
   const pasteImage = (e: ClipboardEvent) => {
@@ -107,13 +117,14 @@ const main = () => {
     context,
     app,
   };
-  const tools = [
+  let tools = [
     new SelectTool(props),
     new LineTool(props),
     new LineTool(props),
     new RectTool(props),
     new OvalTool(props),
     new TriangleTool(props),
+    new EraseTool(props),
   ];
 
   let currentTool = 1;
@@ -179,6 +190,37 @@ const main = () => {
   document.getElementById("color")?.addEventListener("change", (e) => {
     const color = (e.target as HTMLInputElement).value;
     setState("PENCOLOR", color);
+  });
+
+  document.getElementById("stroke")?.addEventListener("change", (e) => {
+    const stroke = parseInt((e.target as HTMLInputElement).value);
+    setState("PENSTROKE", stroke);
+  });
+
+  const updatePageIndicator = () => {
+    const indi = document.getElementById("pageindi");
+    if (!indi) return;
+    indi.innerHTML = `${currentInstance + 1}/${instances.length}`;
+
+    (buttons[currentTool] as HTMLButtonElement).click();
+  };
+
+  document.getElementById("left")?.addEventListener("click", () => {
+    instances[currentInstance].instanceElement.style.display = "none";
+    currentInstance = Math.max(0, currentInstance - 1);
+    instances[currentInstance].instanceElement.style.display = "block";
+    updatePageIndicator();
+  });
+
+  document.getElementById("right")?.addEventListener("click", () => {
+    instances[currentInstance].instanceElement.style.display = "none";
+    if (currentInstance == instances.length - 1) {
+      instances.push(new Instance());
+      drawnLayer.appendChild(instances[instances.length - 1].instanceElement);
+    }
+    currentInstance = currentInstance + 1;
+    instances[currentInstance].instanceElement.style.display = "initial";
+    updatePageIndicator();
   });
 
   // const poly = [];

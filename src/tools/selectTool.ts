@@ -1,11 +1,13 @@
 import computeBoundingRectangle from "../algorithm/boundingPolygon";
 import pointDistance from "../algorithm/pointDistance";
 import { intersect, Point, Polygon, polygonArea } from "../algorithm/polygon";
+import calculateRectangleCorners from "../algorithm/rotatedRect";
+import rotateRect from "../algorithm/rotateImage";
 import rotateLine from "../algorithm/rotateLine";
 import rotatePolygon from "../algorithm/rotatePolygon";
 import createThickPolygon from "../algorithm/strokePolygon";
 import { getInstance } from "../main";
-import { IDrawLine } from "../types/draw";
+import { IDrawImage, IDrawLine } from "../types/draw";
 import CONFIG from "../utils/config";
 import { getState } from "../utils/state";
 import zIndex from "../utils/zIndexManager";
@@ -330,6 +332,59 @@ export class SelectTool implements PenType {
 
     context.setLineDash([]);
   }
+  rotate_drawImageGhost(
+    centerX: number,
+    centerY: number,
+    deg: number,
+    key: string
+  ) {
+    const inst = getInstance();
+    const context = inst.drawnLayers[key].t;
+    const object = inst.drawnLayers[key].d;
+
+    const image = object as IDrawImage;
+
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+
+    const nrect = rotateRect(
+      {
+        height: image.height,
+        width: image.width,
+        rotate: image.rotate,
+        x: image.left,
+        y: image.top,
+      },
+      centerX,
+      centerY,
+      deg
+    );
+    // draw nrect
+
+    const poly = calculateRectangleCorners(
+      nrect.x + nrect.width / 2,
+      nrect.y + nrect.height / 2,
+      nrect.width,
+      nrect.height,
+      deg
+    );
+    let xAvg = poly[0].x;
+    let yAvg = poly[0].y;
+    context.moveTo(poly[0].x, poly[0].y);
+    for (let i = 1; i < poly.length; i++) {
+      xAvg += poly[i].x;
+      yAvg += poly[i].y;
+    }
+
+    xAvg /= poly.length;
+    yAvg /= poly.length;
+
+    context.save();
+    context.translate(xAvg, yAvg);
+    context.rotate((nrect.rotate * Math.PI) / 180);
+    context.translate(-xAvg, -yAvg);
+    context.drawImage(image.image, nrect.x, nrect.y, nrect.width, nrect.height);
+    context.restore();
+  }
   rotate_drawGhost(poly: Polygon, key: string, zIndex: number) {
     const inst = getInstance();
     const context = inst.drawnLayers[key].t;
@@ -427,7 +482,15 @@ export class SelectTool implements PenType {
           this.selectedObjects[i]
         );
       }
-      if (objectType === "image") continue;
+      if (objectType === "image") {
+        this.rotate_drawImageGhost(
+          this.mouseStart.x * CONFIG.SCALE,
+          this.mouseStart.y * CONFIG.SCALE,
+          angle,
+          this.selectedObjects[i]
+        );
+        continue;
+      }
       this.rotate_drawGhost(
         rotatePolygon(
           getInstance().drawnPolygons[this.selectedObjects[i]],
@@ -445,6 +508,7 @@ export class SelectTool implements PenType {
   rotate_mouseUp() {
     if (this.workingState !== "ROTATE") return;
     this.workingState = "SELECTED";
+    this.rotate_applyPoly();
   }
 
   rotate_applyPoly() {
@@ -468,6 +532,24 @@ export class SelectTool implements PenType {
           obj.to = rotateLine(center, obj.from, obj.to, this.bboxRotate)[1];
           break;
         case "image":
+          const nrect = rotateRect(
+            {
+              height: object.height,
+              width: object.width,
+              rotate: object.rotate,
+              x: object.left,
+              y: object.top,
+            },
+            this.mouseStart.x * CONFIG.SCALE,
+            this.mouseStart.y * CONFIG.SCALE,
+            this.bboxRotate
+          );
+          object.left = nrect.x;
+          object.top = nrect.y;
+          object.width = nrect.width;
+          object.height = nrect.height;
+          object.rotate = nrect.rotate;
+
           break;
         default:
           inst.drawnLayers[key].d = {
@@ -592,7 +674,6 @@ export class SelectTool implements PenType {
     }
   }
   disselect() {
-    this.rotate_applyPoly();
     this.selectedObjects = [];
     this.destroyBBox();
     this.allowDrawing();
@@ -725,6 +806,7 @@ export class SelectTool implements PenType {
 
       this.allowDrawing();
       this.destroyBBox();
+      this.disselect();
     };
   }
 }

@@ -25,9 +25,11 @@
       <button class="tool-button">Rect</button>
       <button class="tool-button">Oval</button>
       <button class="tool-button">Tria</button>
+      <button class="tool-button">Erase</button>
       <button class="toggle-button" data-config="SHIFTTOOL">SHIFTTOOL</button>
       <button class="toggle-button" data-config="FILLTOOL">FILLTOOL</button>
       <button class="toggle-button" data-config="SNAP_RIGHT">SNAP_RIGHT</button>
+      <br />
       <button class="util-button" id="export">Save</button>
       <button class="util-button" id="import">Load</button>
       <button>
@@ -45,6 +47,25 @@
           "
         />
       </button>
+      <button>
+        STROKE
+        <input
+          type="number"
+          id="stroke"
+          value="3"
+          style="
+            border: 1px solid black;
+            padding: 0px;
+            margin: 0px;
+            outline: none;
+            background: none;
+            height: 1.2em;
+          "
+        />
+      </button>
+      <button id="left">LEFT</button>
+      <button id="pageindi">1/1</button>
+      <button id="right">RIGHT</button>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

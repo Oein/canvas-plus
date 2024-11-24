@@ -1,5 +1,6 @@
 import computeStrokeOutline from "../algorithm/outStrokePolygon";
 import { Polygon, polygonArea } from "../algorithm/polygon";
+import calculateRectangleCorners from "../algorithm/rotatedRect";
 import createThickPolygon from "../algorithm/strokePolygon";
 import {
   IDraw,
@@ -96,6 +97,27 @@ export default class Instance {
   }
 
   drawImage(object: IDrawImage, context: CanvasRenderingContext2D): Polygon {
+    context.save();
+    const poly = calculateRectangleCorners(
+      object.left + object.width / 2,
+      object.top + object.height / 2,
+      object.width,
+      object.height,
+      object.rotate
+    );
+
+    let xAvg = 0;
+    let yAvg = 0;
+    for (let i = 0; i < poly.length; i++) {
+      xAvg += poly[i].x;
+      yAvg += poly[i].y;
+    }
+    xAvg /= poly.length;
+    yAvg /= poly.length;
+
+    context.translate(xAvg, yAvg);
+    context.rotate((object.rotate * Math.PI) / 180);
+    context.translate(-xAvg, -yAvg);
     context.drawImage(
       object.image,
       object.left,
@@ -103,15 +125,9 @@ export default class Instance {
       object.width,
       object.height
     );
-    return [
-      { x: object.left, y: object.top },
-      { x: object.width + object.left, y: object.top },
-      {
-        x: object.width + object.left,
-        y: object.height + object.top,
-      },
-      { x: object.left, y: object.height + object.top },
-    ];
+    context.restore();
+
+    return poly;
   }
 
   drawPoly(object: IDrawPolygon): Polygon {
@@ -203,7 +219,6 @@ export default class Instance {
     if (typeof nzi === "number") {
       this.drawnLayers[id].c.style.zIndex = nzi.toString();
       this.drawnLayers[id].d.z = nzi;
-      console.log("ZINDEX", nzi);
     }
     this.drawnPolygons[id] = this.drawnPolygons[id].map((p) => {
       return { x: p.x + dx, y: p.y + dy };
@@ -269,7 +284,7 @@ export default class Instance {
         break;
     }
 
-    if ("fillColor" in object) {
+    if ("fillColor" in object && object.type != "polygon") {
       if (object.fillColor === "transparent") {
         polygon = createThickPolygon(polygon, object.strokeWidth);
       } else {

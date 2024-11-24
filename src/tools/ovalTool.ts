@@ -70,8 +70,7 @@ export class OvalTool implements PenType {
       };
       const elipPoly = ellipsePolygon(centerX, radiusX, centerY, radiusY);
       fabricAdd({
-        fillColor:
-          obj.fillColor === "transparent" ? obj.strokeColor : obj.fillColor,
+        fillColor: getState<string>("PENCOLOR"),
         points:
           obj.fillColor === "transparent"
             ? createThickPolygon(elipPoly, obj.strokeWidth)
