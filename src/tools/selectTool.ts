@@ -715,6 +715,35 @@ export class SelectTool implements PenType {
   bbox_bindMMV = this.bbox_mouseMove.bind(this);
   bbox_bindMUP = this.bbox_mouseUp.bind(this);
 
+  setupRemoveButton() {
+    const removeButton = document.createElement("div");
+    removeButton.style.position = "absolute";
+    removeButton.style.left = "0";
+    removeButton.style.bottom = "0";
+    removeButton.style.width = "20px";
+    removeButton.style.height = "20px";
+    removeButton.style.backgroundColor = "white";
+    removeButton.style.color = "black";
+    removeButton.style.textAlign = "center";
+    removeButton.style.lineHeight = "20px";
+    removeButton.style.cursor = "pointer";
+    removeButton.style.border = "1px solid black";
+    removeButton.style.display = "flex";
+    removeButton.style.justifyContent = "center";
+    removeButton.style.alignItems = "center";
+    // svg trash icon
+    removeButton.innerHTML = `<svg style="width: 20px; height: 20px;"  xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>`;
+
+    removeButton.addEventListener("click", () => {
+      for (let i = 0; i < this.selectedObjects.length; i++) {
+        getInstance().removeLayer(this.selectedObjects[i]);
+      }
+      this.disselect();
+    });
+
+    return removeButton;
+  }
+
   setupBBox(bbox: Polygon) {
     this.bboxRotate = 0;
     const bboxElement = document.createElement("div");
@@ -730,6 +759,7 @@ export class SelectTool implements PenType {
 
     tools.appendChild(this.setupResize());
     bboxElement.appendChild(this.setupRotate());
+    tools.appendChild(this.setupRemoveButton());
     bboxElement.appendChild(tools);
 
     this.wk.appendChild(bboxElement);
