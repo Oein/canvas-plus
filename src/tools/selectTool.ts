@@ -10,6 +10,7 @@ import { getInstance, transform } from "../main";
 import { IDrawImage, IDrawLine } from "../types/draw";
 import CONFIG from "../utils/config";
 import { getState } from "../utils/state";
+import CoordinateInputModal from "../utils/xyInputModal";
 import zIndex from "../utils/zIndexManager";
 import { IProps, PenType } from "./toolType";
 
@@ -739,9 +740,47 @@ export class SelectTool implements PenType {
         getInstance().removeLayer(this.selectedObjects[i]);
       }
       this.disselect();
+      getInstance().saveAsHistory();
     });
 
     return removeButton;
+  }
+
+  setupTransformButton() {
+    const transformButton = document.createElement("div");
+    transformButton.style.position = "absolute";
+    transformButton.style.left = "0";
+    transformButton.style.top = "0";
+    transformButton.style.width = "20px";
+    transformButton.style.height = "20px";
+    transformButton.style.backgroundColor = "white";
+    transformButton.style.color = "black";
+    transformButton.style.textAlign = "center";
+    transformButton.style.lineHeight = "20px";
+    transformButton.style.cursor = "pointer";
+    transformButton.style.border = "1px solid black";
+    transformButton.style.display = "flex";
+    transformButton.style.justifyContent = "center";
+    transformButton.style.alignItems = "center";
+    // svg trash icon
+    transformButton.innerHTML = `<svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000"><path d="M440-40v-167l-44 43-56-56 140-140 140 140-56 56-44-43v167h-80ZM220-340l-56-56 43-44H40v-80h167l-43-44 56-56 140 140-140 140Zm520 0L600-480l140-140 56 56-43 44h167v80H753l43 44-56 56Zm-260-80q-25 0-42.5-17.5T420-480q0-25 17.5-42.5T480-540q25 0 42.5 17.5T540-480q0 25-17.5 42.5T480-420Zm0-180L340-740l56-56 44 43v-167h80v167l44-43 56 56-140 140Z"/></svg>`;
+
+    transformButton.addEventListener("click", () => {
+      const modal = new CoordinateInputModal((resu) => {
+        if (resu === null) return;
+        const inst = getInstance();
+        this.context_drawSelected(resu.x, resu.y);
+        for (let i = 0; i < this.selectedObjects.length; i++) {
+          inst.transform(this.selectedObjects[i], resu.x, resu.y);
+          inst.rerender(this.selectedObjects[i]);
+        }
+        getInstance().saveAsHistory();
+        this.bbox_transform(resu.x / CONFIG.SCALE, resu.y / CONFIG.SCALE);
+      });
+      modal.open();
+    });
+
+    return transformButton;
   }
 
   setupBBox(bbox: Polygon) {
@@ -760,6 +799,7 @@ export class SelectTool implements PenType {
     tools.appendChild(this.setupResize());
     bboxElement.appendChild(this.setupRotate());
     tools.appendChild(this.setupRemoveButton());
+    tools.appendChild(this.setupTransformButton());
     bboxElement.appendChild(tools);
 
     this.wk.appendChild(bboxElement);

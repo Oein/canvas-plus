@@ -14,7 +14,7 @@ import { SelectTool } from "./tools/selectTool";
 
 import { IDraw } from "./types/draw";
 import Instance from "./instance";
-import TextInputModal from "./utils/Tim";
+import TextInputModal from "./utils/textInputModal";
 import renderTextToImageWebPTransparent from "./utils/twebp";
 import CONFIG from "./utils/config";
 
