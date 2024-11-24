@@ -32,7 +32,7 @@ const createWindow = () => {
       contextIsolation: false,
     },
   });
-  mainWindow.loadFile(path.join(__dirname, "..", "..", "dist", "index.html"));
+  mainWindow.loadFile(path.join(__dirname, "..", "web", "index.html"));
 
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
@@ -102,7 +102,7 @@ const createWindow = () => {
       y: 25,
       transparent: true,
     });
-    capWin.loadFile(path.join(__dirname, "..", "wincap.html"));
+    capWin.loadFile(path.join(__dirname, "..", "web", "wincap.html"));
   });
 };
 
