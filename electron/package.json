@@ -12,7 +12,8 @@
     "typescript": "^5.7.2"
   },
   "scripts": {
-    "start": "tsc && electron dist/index.js"
+    "start": "tsc && electron dist/index.js",
+    "build": "tsc && electron-builder --win --x64 -w"
   },
   "dependencies": {
     "pdfkit": "^0.15.1",
