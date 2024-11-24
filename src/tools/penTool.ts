@@ -1,6 +1,5 @@
 import { generateStrokedPolygon } from "../algorithm/penPolygon";
 import { Point } from "../algorithm/polygon";
-import createThickPolygon from "../algorithm/strokePolygon";
 import { fabricAdd } from "../main";
 import CONFIG from "../utils/config";
 import { getState } from "../utils/state";
