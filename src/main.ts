@@ -14,6 +14,9 @@ import { SelectTool } from "./tools/selectTool";
 
 import { IDraw } from "./types/draw";
 import Instance from "./instance";
+import TextInputModal from "./utils/Tim";
+import renderTextToImageWebPTransparent from "./utils/twebp";
+import CONFIG from "./utils/config";
 
 // const inst = await (false
 //   ? await fetch("/nocanvas.bin")
@@ -115,8 +118,8 @@ const main = () => {
           fabricAdd({
             type: "image",
             image: img,
-            left: 0,
-            top: 0,
+            left: ((window.innerWidth - width * scale) / 2) * CONFIG.SCALE,
+            top: ((window.innerHeight - height * scale) / 2) * CONFIG.SCALE,
             rotate: 0,
             width: width * scale,
             height: height * scale,
@@ -407,6 +410,34 @@ const main = () => {
       }
     );
   } catch (e) {}
+
+  document.getElementById("textbtn")?.addEventListener("click", () => {
+    const modal = new TextInputModal((text) => {
+      if (!text) return;
+      const img = renderTextToImageWebPTransparent(text);
+      img.onload = () => {
+        const [width, height] = [img.width, img.height];
+        let scale = 1;
+        if (width > window.innerWidth) {
+          scale = window.innerWidth / width;
+        }
+        if (height * scale > window.innerHeight) {
+          scale = window.innerHeight / height;
+        }
+        fabricAdd({
+          type: "image",
+          image: img,
+          left: ((window.innerWidth - width * scale) / 2) * CONFIG.SCALE,
+          top: ((window.innerHeight - height * scale) / 2) * CONFIG.SCALE,
+          rotate: 0,
+          width: width * scale,
+          height: height * scale,
+          z: zIndex(),
+        });
+      };
+    });
+    modal.open();
+  });
 
   // const poly = [
   //   {
