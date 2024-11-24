@@ -96,6 +96,57 @@ export class SelectTool implements PenType {
     this.wk.removeEventListener("mouseup", this.wk_bindMUP);
   }
 
+  resize_drawImageGhost(key: string) {
+    const inst = getInstance();
+    const context = inst.drawnLayers[key].t;
+    const object = inst.drawnLayers[key].d as IDrawImage;
+
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+
+    const nrect = rotateRect(
+      {
+        height: object.height * this.lastScaled.y,
+        width: object.width * this.lastScaled.x,
+        rotate: object.rotate,
+        x: this.bbox[0].x + (object.left - this.bbox[0].x) * this.lastScaled.x,
+        y: this.bbox[0].y + (object.top - this.bbox[0].y) * this.lastScaled.y,
+      },
+      this.bbox[0].x + (object.left - this.bbox[0].x) * this.lastScaled.x,
+      this.bbox[0].y + (object.top - this.bbox[0].y) * this.lastScaled.y,
+      object.rotate
+    );
+
+    const poly = calculateRectangleCorners(
+      nrect.x + nrect.width / 2,
+      nrect.y + nrect.height / 2,
+      nrect.width,
+      nrect.height,
+      nrect.rotate
+    );
+
+    let xAvg = poly[0].x;
+    let yAvg = poly[0].y;
+    for (let i = 1; i < poly.length; i++) {
+      xAvg += poly[i].x;
+      yAvg += poly[i].y;
+    }
+
+    xAvg /= poly.length;
+    yAvg /= poly.length;
+
+    context.save();
+    context.translate(xAvg, yAvg);
+    context.rotate((nrect.rotate * Math.PI) / 180);
+    context.translate(-xAvg, -yAvg);
+    context.drawImage(
+      object.image,
+      nrect.x,
+      nrect.y,
+      nrect.width,
+      nrect.height
+    );
+    context.restore();
+  }
   resize_drawLineGhost(key: string) {
     const inst = getInstance();
     const context = inst.drawnLayers[key].t;
@@ -144,7 +195,7 @@ export class SelectTool implements PenType {
     context.canvas.style.zIndex = zIndex.toString();
 
     if (object.type == "line") return this.resize_drawLineGhost(key);
-    if (object.type == "image") return;
+    if (object.type == "image") return this.resize_drawImageGhost(key);
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
     context.strokeStyle = "transparent";
 
@@ -221,6 +272,14 @@ export class SelectTool implements PenType {
               (object.to.y - this.bbox[0].y) * this.lastScaled.y,
           };
           break;
+        case "image":
+          object.left =
+            this.bbox[0].x + (object.left - this.bbox[0].x) * this.lastScaled.x;
+          object.top =
+            this.bbox[0].y + (object.top - this.bbox[0].y) * this.lastScaled.y;
+          object.width *= this.lastScaled.x;
+          object.height *= this.lastScaled.y;
+          break;
       }
     }
   }
@@ -282,6 +341,16 @@ export class SelectTool implements PenType {
 
     // apply new polygon
     this.resize_applyPoly();
+
+    // redraw images
+    for (let i = 0; i < this.selectedObjects.length; i++) {
+      const objectType =
+        getInstance().drawnLayers[this.selectedObjects[i]].d.type;
+      if (objectType === "image") {
+        getInstance().rerender(this.selectedObjects[i]);
+        continue;
+      }
+    }
   }
 
   resize_bindMDN = this.resize_mouseDown.bind(this);

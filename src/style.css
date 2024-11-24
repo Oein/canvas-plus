@@ -227,6 +227,7 @@ body {
   width: 1.5rem;
   border-radius: 9999px;
   background: #186ef7;
+  left: 0px;
 
   transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
