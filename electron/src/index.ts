@@ -31,7 +31,9 @@ const createWindow = () => {
       nodeIntegration: true,
       contextIsolation: false,
     },
+    resizable: false,
   });
+  mainWindow.maximize();
   mainWindow.loadFile(path.join(__dirname, "..", "web", "index.html"));
 
   const primaryDisplay = screen.getPrimaryDisplay();
