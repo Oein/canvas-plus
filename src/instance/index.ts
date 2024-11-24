@@ -29,6 +29,54 @@ export default class Instance {
   drawnLayers: { [key: string]: IDrawnLayer } = {};
   drawnPolygons: { [key: string]: Polygon } = {};
 
+  history: {
+    idraw: { [key: string]: IDrawnLayer };
+    ipoly: { [key: string]: Polygon };
+  }[] = [
+    {
+      idraw: {},
+      ipoly: {},
+    },
+  ];
+  undoing = false;
+
+  saveAsHistory() {
+    this.history.push({
+      idraw: { ...this.drawnLayers },
+      ipoly: { ...this.drawnPolygons },
+    });
+    this.undoing = false;
+    if (this.history.length > CONFIG.MAX_HISTORY) {
+      this.history.shift();
+    }
+  }
+
+  undo() {
+    if (this.history.length < 2 || this.undoing) {
+      return;
+    }
+    this.history.pop();
+    let history = this.history[this.history.length - 1];
+    if (!history) {
+      return;
+    }
+    const keys = Object.keys(this.drawnLayers);
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      this.removeLayer(key);
+    }
+
+    this.drawnLayers = history.idraw;
+    this.drawnPolygons = history.ipoly;
+    const keys2 = Object.keys(this.drawnLayers);
+    for (let i = 0; i < keys2.length; i++) {
+      const key = keys2[i];
+      const layer = this.drawnLayers[key];
+      this.drawnLayerParent.appendChild(layer.c);
+      this.render(layer.t, layer.d, key, false);
+    }
+  }
+
   constructor(importData?: ArrayBuffer) {
     this.instanceElement = document.createElement("div");
     this.instanceElement.className = "instance";
@@ -252,7 +300,8 @@ export default class Instance {
   render(
     canvas: string | CanvasRenderingContext2D,
     object: IDraw,
-    objectid: string
+    objectid: string,
+    saveDrawnPoly = true
   ) {
     if (typeof canvas === "string") {
       canvas = this.drawnLayers[canvas].t;
@@ -309,13 +358,13 @@ export default class Instance {
         type: "polygon",
         z: object.z,
       };
-      this.drawnLayers[objectid].d = object;
+      if (saveDrawnPoly) this.drawnLayers[objectid].d = object;
       // draw as polygon
       this.drawPolyToCanvas(object, canvas);
     }
 
     console.log("Instance render", object, objectid);
-    this.drawnPolygons[objectid] = polygon;
+    if (saveDrawnPoly) this.drawnPolygons[objectid] = polygon;
   }
 
   fabricAdd(object: IDraw) {

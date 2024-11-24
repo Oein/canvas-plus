@@ -1,4 +1,4 @@
-import { fabricAdd } from "../main";
+import { fabricAdd, getInstance } from "../main";
 import CONFIG from "../utils/config";
 import { getState } from "../utils/state";
 import { IProps, PenType } from "./toolType";
@@ -131,6 +131,8 @@ export class LineTool implements PenType {
           : [],
         rotate: deg,
       });
+
+      getInstance().saveAsHistory();
 
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.context.setLineDash([]);

@@ -1,6 +1,6 @@
 import { generateStrokedPolygon } from "../algorithm/penPolygon";
 import { Point } from "../algorithm/polygon";
-import { fabricAdd } from "../main";
+import { fabricAdd, getInstance } from "../main";
 import CONFIG from "../utils/config";
 import { getState } from "../utils/state";
 import { IProps, PenType } from "./toolType";
@@ -72,7 +72,8 @@ export class PenTool implements PenType {
         strokeWidth: 0,
         strokeColor: "transparent",
       });
-      console.log(poly);
+
+      getInstance().saveAsHistory();
     };
     this.canvas.addEventListener("mousemove", mouseMove);
     this.canvas.addEventListener("mousedown", mouseDown);

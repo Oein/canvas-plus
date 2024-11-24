@@ -278,6 +278,7 @@ export class SelectTool implements PenType {
     if (this.workingState !== "RESIZE") return;
     e.stopPropagation();
     this.workingState = "SELECTED";
+    getInstance().saveAsHistory();
 
     // apply new polygon
     this.resize_applyPoly();
@@ -509,6 +510,7 @@ export class SelectTool implements PenType {
     if (this.workingState !== "ROTATE") return;
     this.workingState = "SELECTED";
     this.rotate_applyPoly();
+    getInstance().saveAsHistory();
   }
 
   rotate_applyPoly() {
@@ -625,6 +627,8 @@ export class SelectTool implements PenType {
     if (this.workingState != "BBOX_MOVE") return;
     e.stopPropagation();
     this.workingState = "SELECTED";
+
+    getInstance().saveAsHistory();
     if (this.bboxElement) this.bboxElement.style.cursor = "grab";
   }
 

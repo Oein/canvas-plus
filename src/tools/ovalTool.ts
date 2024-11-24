@@ -1,7 +1,7 @@
 import ellipsePolygon from "../algorithm/ellipsePolygon";
 import computeStrokeOutline from "../algorithm/outStrokePolygon";
 import createThickPolygon from "../algorithm/strokePolygon";
-import { fabricAdd } from "../main";
+import { fabricAdd, getInstance } from "../main";
 import CONFIG from "../utils/config";
 import { getState } from "../utils/state";
 import { IProps, PenType } from "./toolType";
@@ -79,6 +79,8 @@ export class OvalTool implements PenType {
         strokeWidth: 0,
         type: "polygon",
       });
+
+      getInstance().saveAsHistory();
     }
   }
 

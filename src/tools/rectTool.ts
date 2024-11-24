@@ -1,4 +1,4 @@
-import { fabricAdd } from "../main";
+import { fabricAdd, getInstance } from "../main";
 import CONFIG from "../utils/config";
 import { getState } from "../utils/state";
 import { IProps, PenType } from "./toolType";
@@ -59,6 +59,7 @@ export class RectTool implements PenType {
         rotate: 0,
         strokeWidth: strk,
       });
+      getInstance().saveAsHistory();
     }
   }
 

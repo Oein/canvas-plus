@@ -37,7 +37,9 @@ export class EraseTool implements PenType {
       }
     };
     const mouseUp = () => {
+      if (this.state !== "ERASE") return;
       this.state = "NONE";
+      getInstance().saveAsHistory();
     };
     this.canvas.addEventListener("mousemove", mouseMove);
     this.canvas.addEventListener("mousedown", mouseDown);

@@ -1,4 +1,4 @@
-import { fabricAdd } from "../main";
+import { fabricAdd, getInstance } from "../main";
 import CONFIG from "../utils/config";
 import { getState } from "../utils/state";
 import { IProps, PenType } from "./toolType";
@@ -82,6 +82,8 @@ export class TriangleTool implements PenType {
           { x: stX + width / 2, y: stY },
         ],
       });
+
+      getInstance().saveAsHistory();
     }
   }
 
