@@ -310,6 +310,25 @@ const main = () => {
     window.require("electron").ipcRenderer.send("wincap");
   });
 
+  document.getElementById("pdf")?.addEventListener("click", async (e) => {
+    (e.target as HTMLButtonElement).style.background = "black";
+    const pdfLinks: string[] = [];
+    for (let i = 0; i < instances.length; i++) {
+      pdfLinks.push(await instances[i].exportImage());
+    }
+
+    const imageW = window.innerWidth;
+    const imageH = window.innerHeight;
+
+    // @ts-ignore
+    window
+      // @ts-ignore
+      .require("electron")
+      .ipcRenderer.send("pdf", [imageW, imageH, pdfLinks]);
+
+    (e.target as HTMLButtonElement).style.background = "";
+  });
+
   try {
     let screenSZ = { width: 0, height: 0 };
     // @ts-ignore

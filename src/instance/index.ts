@@ -348,14 +348,16 @@ export default class Instance {
     canvas: string | CanvasRenderingContext2D,
     object: IDraw,
     objectid: string,
-    saveDrawnPoly = true
+    saveDrawnPoly = true,
+    clear = true
   ) {
     if (typeof canvas === "string") {
       canvas = this.drawnLayers[canvas].t;
     }
 
     if (typeof canvas == "string") return;
-    canvas.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
+    if (clear)
+      canvas.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
     canvas.canvas.style.zIndex = (object.z || zIndex()).toString();
     let polygon: Polygon = [];
 
@@ -556,5 +558,32 @@ export default class Instance {
       const id = this.fabricAdd(object);
       if (!id) continue;
     }
+  }
+
+  async exportImage() {
+    const [canvas, context] = createCanvas();
+
+    let keys = Object.keys(this.drawnLayers).map((v, i) => [v, i]);
+    // sort by zIndex and original order
+    keys = keys.sort((a, b) => {
+      return (
+        // @ts-ignore
+        this.drawnLayers[a[0]].d.z - this.drawnLayers[b[0]].d.z || a[1] - b[1]
+      );
+    });
+
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = "white";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i][0] as string;
+      const layer = this.drawnLayers[key];
+      if (!layer) continue;
+      console.log("RENDER", key, layer.d);
+      this.render(context, layer.d, key, false, false);
+    }
+
+    return canvas.toDataURL("image/png");
   }
 }
