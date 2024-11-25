@@ -95,8 +95,14 @@ body {
   background-color: #fff;
   color: #000;
   border: 1px solid #000;
-  padding: 5px 10px;
   cursor: pointer;
+
+  padding: 3px;
+  margin: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
 }
 
 #disup > button.active,

@@ -344,6 +344,126 @@ export default class Instance {
     }
   }
 
+  async flipX(id: string, flipCenterX: number, nzi?: number) {
+    const layer = this.drawnLayers[id];
+    if (!layer) return;
+
+    if (typeof nzi === "number") {
+      this.drawnLayers[id].c.style.zIndex = nzi.toString();
+      this.drawnLayers[id].d.z = nzi;
+    }
+
+    this.drawnPolygons[id] = this.drawnPolygons[id].map((p) => {
+      return { x: flipCenterX - (p.x - flipCenterX), y: p.y };
+    });
+
+    if (layer.d.type === "image") {
+      // flip image
+      const img = layer.d.image;
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const context = canvas.getContext("2d");
+      if (!context) return;
+      context.translate(img.width, 0);
+      context.scale(-1, 1);
+      context.drawImage(img, 0, 0);
+      // get image data
+      const imgData = canvas.toDataURL("image/webp");
+      const newImg = new Image();
+      newImg.src = imgData;
+      layer.d.image = newImg;
+      await new Promise((res) => {
+        newImg.onload = res;
+      });
+
+      // flip object
+      layer.d.left = flipCenterX - (layer.d.left - flipCenterX) - layer.d.width;
+    }
+
+    if (layer.d.type === "rect") {
+      layer.d.leftTop.x =
+        flipCenterX - (layer.d.leftTop.x - flipCenterX) - layer.d.width;
+    }
+
+    if (layer.d.type === "triangle") {
+      layer.d.points = layer.d.points.map((p) => {
+        return { x: flipCenterX - (p.x - flipCenterX), y: p.y };
+      });
+    }
+
+    if (layer.d.type === "polygon") {
+      layer.d.points = layer.d.points.map((p) => {
+        return { x: flipCenterX - (p.x - flipCenterX), y: p.y };
+      });
+    }
+
+    if (layer.d.type === "line") {
+      layer.d.from.x = flipCenterX - (layer.d.from.x - flipCenterX);
+      layer.d.to.x = flipCenterX - (layer.d.to.x - flipCenterX);
+    }
+  }
+
+  async flipY(id: string, flipCenterY: number, nzi?: number) {
+    const layer = this.drawnLayers[id];
+    if (!layer) return;
+
+    if (typeof nzi === "number") {
+      this.drawnLayers[id].c.style.zIndex = nzi.toString();
+      this.drawnLayers[id].d.z = nzi;
+    }
+
+    this.drawnPolygons[id] = this.drawnPolygons[id].map((p) => {
+      return { x: p.x, y: flipCenterY - (p.y - flipCenterY) };
+    });
+
+    if (layer.d.type === "image") {
+      // flip image
+      const img = layer.d.image;
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const context = canvas.getContext("2d");
+      if (!context) return;
+      context.translate(0, img.height);
+      context.scale(1, -1);
+      context.drawImage(img, 0, 0);
+      // get image data
+      const imgData = canvas.toDataURL("image/webp");
+      const newImg = new Image();
+      newImg.src = imgData;
+      layer.d.image = newImg;
+      await new Promise((res) => {
+        newImg.onload = res;
+      });
+
+      // flip object
+      layer.d.top = flipCenterY - (layer.d.top - flipCenterY) - layer.d.height;
+    }
+
+    if (layer.d.type === "rect") {
+      layer.d.leftTop.y =
+        flipCenterY - (layer.d.leftTop.y - flipCenterY) - layer.d.height;
+    }
+
+    if (layer.d.type === "triangle") {
+      layer.d.points = layer.d.points.map((p) => {
+        return { x: p.x, y: flipCenterY - (p.y - flipCenterY) };
+      });
+    }
+
+    if (layer.d.type === "polygon") {
+      layer.d.points = layer.d.points.map((p) => {
+        return { x: p.x, y: flipCenterY - (p.y - flipCenterY) };
+      });
+    }
+
+    if (layer.d.type === "line") {
+      layer.d.from.y = flipCenterY - (layer.d.from.y - flipCenterY);
+      layer.d.to.y = flipCenterY - (layer.d.to.y - flipCenterY);
+    }
+  }
+
   render(
     canvas: string | CanvasRenderingContext2D,
     object: IDraw,

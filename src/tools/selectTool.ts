@@ -719,8 +719,8 @@ export class SelectTool implements PenType {
   setupRemoveButton() {
     const removeButton = document.createElement("div");
     removeButton.style.position = "absolute";
-    removeButton.style.left = "0";
-    removeButton.style.bottom = "0";
+    removeButton.style.left = "-20px";
+    removeButton.style.bottom = "-20px";
     removeButton.style.width = "20px";
     removeButton.style.height = "20px";
     removeButton.style.backgroundColor = "white";
@@ -749,8 +749,8 @@ export class SelectTool implements PenType {
   setupTransformButton() {
     const transformButton = document.createElement("div");
     transformButton.style.position = "absolute";
-    transformButton.style.left = "0";
-    transformButton.style.top = "0";
+    transformButton.style.left = "-20px";
+    transformButton.style.top = "-20px";
     transformButton.style.width = "20px";
     transformButton.style.height = "20px";
     transformButton.style.backgroundColor = "white";
@@ -783,6 +783,88 @@ export class SelectTool implements PenType {
     return transformButton;
   }
 
+  setupFlipXButton() {
+    const flipXButton = document.createElement("div");
+    flipXButton.style.position = "absolute";
+    flipXButton.style.right = "-20px";
+    flipXButton.style.top = "-20px";
+    flipXButton.style.width = "20px";
+    flipXButton.style.height = "20px";
+    flipXButton.style.backgroundColor = "white";
+    flipXButton.style.color = "black";
+    flipXButton.style.textAlign = "center";
+    flipXButton.style.lineHeight = "20px";
+    flipXButton.style.cursor = "pointer";
+    flipXButton.style.border = "1px solid black";
+    flipXButton.style.display = "flex";
+    flipXButton.style.justifyContent = "center";
+    flipXButton.style.alignItems = "center";
+    // svg trash icon
+    flipXButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentcolor"><path d="M360-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h160v80H200v560h160v80Zm80 80v-880h80v880h-80Zm160-80v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80q0 33-23.5 56.5T760-120Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80q33 0 56.5 23.5T840-760h-80Z"/></svg>`;
+
+    flipXButton.addEventListener("click", () => {
+      const nzi = zIndex();
+      const bbox = computeBoundingRectangle(
+        this.selectedObjects.map((key) => getInstance().drawnPolygons[key])
+      );
+      for (const key of this.selectedObjects) {
+        (() => {
+          getInstance()
+            .flipX(key, bbox[0].x + (bbox[2].x - bbox[0].x) / 2, nzi)
+            .then(() => {
+              getInstance().rerender(key);
+            });
+        })();
+      }
+
+      getInstance().saveAsHistory();
+      this.context_drawSelected(0, 0);
+    });
+
+    return flipXButton;
+  }
+
+  setupFlipYButton() {
+    const flipYButton = document.createElement("div");
+    flipYButton.style.position = "absolute";
+    flipYButton.style.right = "-40px";
+    flipYButton.style.top = "-20px";
+    flipYButton.style.width = "20px";
+    flipYButton.style.height = "20px";
+    flipYButton.style.backgroundColor = "white";
+    flipYButton.style.color = "black";
+    flipYButton.style.textAlign = "center";
+    flipYButton.style.lineHeight = "20px";
+    flipYButton.style.cursor = "pointer";
+    flipYButton.style.border = "1px solid black";
+    flipYButton.style.display = "flex";
+    flipYButton.style.justifyContent = "center";
+    flipYButton.style.alignItems = "center";
+    // svg trash icon
+    flipYButton.innerHTML = `<svg style="rotate: 90deg;" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentcolor"><path d="M360-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h160v80H200v560h160v80Zm80 80v-880h80v880h-80Zm160-80v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80q0 33-23.5 56.5T760-120Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80q33 0 56.5 23.5T840-760h-80Z"/></svg>`;
+
+    flipYButton.addEventListener("click", () => {
+      const nzi = zIndex();
+      const bbox = computeBoundingRectangle(
+        this.selectedObjects.map((key) => getInstance().drawnPolygons[key])
+      );
+      for (const key of this.selectedObjects) {
+        (() => {
+          getInstance()
+            .flipY(key, bbox[0].y + (bbox[2].y - bbox[0].y) / 2, nzi)
+            .then(() => {
+              getInstance().rerender(key);
+            });
+        })();
+      }
+
+      getInstance().saveAsHistory();
+      this.context_drawSelected(0, 0);
+    });
+
+    return flipYButton;
+  }
+
   setupBBox(bbox: Polygon) {
     this.bboxRotate = 0;
     const bboxElement = document.createElement("div");
@@ -800,6 +882,8 @@ export class SelectTool implements PenType {
     bboxElement.appendChild(this.setupRotate());
     tools.appendChild(this.setupRemoveButton());
     tools.appendChild(this.setupTransformButton());
+    tools.appendChild(this.setupFlipXButton());
+    tools.appendChild(this.setupFlipYButton());
     bboxElement.appendChild(tools);
 
     this.wk.appendChild(bboxElement);
