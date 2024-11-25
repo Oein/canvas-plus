@@ -1,5 +1,6 @@
 import { isPointInPolygon } from "../algorithm/pointInPoly";
 import { getInstance } from "../main";
+import { ael, rel } from "../utils/addEventListener";
 import CONFIG from "../utils/config";
 import { IProps, PenType } from "./toolType";
 
@@ -23,8 +24,8 @@ export class EraseTool implements PenType {
     };
     const mouseMove = (e: MouseEvent) => {
       if (this.state !== "ERASE") return;
-      const x = e.offsetX * CONFIG.SCALE;
-      const y = e.offsetY * CONFIG.SCALE;
+      const x = e.clientX * CONFIG.SCALE;
+      const y = e.clientY * CONFIG.SCALE;
 
       const inst = getInstance();
       const keys = Object.keys(inst.drawnLayers);
@@ -41,13 +42,13 @@ export class EraseTool implements PenType {
       this.state = "NONE";
       getInstance().saveAsHistory();
     };
-    this.canvas.addEventListener("mousemove", mouseMove);
-    this.canvas.addEventListener("mousedown", mouseDown);
-    document.addEventListener("mouseup", mouseUp);
+    ael(this.canvas, ["mousedown", "touchstart", "pointerdown"], mouseDown);
+    ael(this.canvas, ["mousemove", "touchmove", "pointermove"], mouseMove);
+    ael(document, ["mouseup", "touchend", "pointerup"], mouseUp);
     return () => {
-      this.canvas.removeEventListener("mousedown", mouseDown);
-      this.canvas.removeEventListener("mousemove", mouseMove);
-      document.removeEventListener("mouseup", mouseUp);
+      rel(this.canvas, ["mousedown", "touchstart", "pointerdown"], mouseDown);
+      rel(this.canvas, ["mousemove", "touchmove", "pointermove"], mouseMove);
+      rel(document, ["mouseup", "touchend", "pointerup"], mouseUp);
     };
   }
 }

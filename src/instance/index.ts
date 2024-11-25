@@ -135,6 +135,21 @@ export default class Instance {
     if (importData) {
       this.importInstance(importData);
     }
+
+    // watch window resize
+    window.addEventListener("resize", () => {
+      // just resize canvas
+      // do not chnage position
+
+      const keys = Object.keys(this.drawnLayers);
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const layer = this.drawnLayers[key];
+        layer.c.width = CONFIG.SCALE * window.innerWidth;
+        layer.c.height = CONFIG.SCALE * window.innerHeight;
+        this.render(layer.t, layer.d, key);
+      }
+    });
   }
 
   drawLine(object: IDrawLine, context: CanvasRenderingContext2D): Polygon {

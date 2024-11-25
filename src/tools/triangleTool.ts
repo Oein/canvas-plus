@@ -1,4 +1,5 @@
 import { fabricAdd, getInstance } from "../main";
+import { ael, rel } from "../utils/addEventListener";
 import CONFIG from "../utils/config";
 import { getState } from "../utils/state";
 import { IProps, PenType } from "./toolType";
@@ -104,13 +105,13 @@ export class TriangleTool implements PenType {
       this.draw(e, null);
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     };
-    this.canvas.addEventListener("mousemove", mouseMove);
-    this.canvas.addEventListener("mousedown", mouseDown);
-    document.addEventListener("mouseup", mouseUp);
+    ael(this.canvas, ["mousemove", "touchmove", "pointermove"], mouseMove);
+    ael(document, ["mouseup", "touchend", "pointerup"], mouseUp);
+    ael(this.canvas, ["mousedown", "touchstart", "pointerdown"], mouseDown);
     return () => {
-      this.canvas.removeEventListener("mousedown", mouseDown);
-      this.canvas.removeEventListener("mousemove", mouseMove);
-      document.removeEventListener("mouseup", mouseUp);
+      rel(this.canvas, ["mousemove", "touchmove", "pointermove"], mouseMove);
+      rel(document, ["mouseup", "touchend", "pointerup"], mouseUp);
+      rel(this.canvas, ["mousedown", "touchstart", "pointerdown"], mouseDown);
     };
   }
 }

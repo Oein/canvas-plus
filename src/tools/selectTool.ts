@@ -8,7 +8,9 @@ import rotatePolygon from "../algorithm/rotatePolygon";
 import createThickPolygon from "../algorithm/strokePolygon";
 import { getInstance, transform, fabricAdd } from "../main";
 import { IDrawImage, IDrawLine } from "../types/draw";
+import { ael, rel } from "../utils/addEventListener";
 import CONFIG from "../utils/config";
+import hslColor from "../utils/hslColor";
 import { getState } from "../utils/state";
 import CoordinateInputModal from "../utils/xyInputModal";
 import zIndex from "../utils/zIndexManager";
@@ -41,8 +43,10 @@ export class SelectTool implements PenType {
   bboxRotate: number = 0;
 
   context_drawSelected(dx = 0, dy = 0) {
-    this.context.strokeStyle = "rgb(15, 15, 200)";
-    this.context.fillStyle = "rgba(15, 15, 200, 0.3)";
+    this.context.strokeStyle = hslColor(1);
+    this.context.fillStyle = hslColor(0.3);
+    if (this.bboxElement)
+      this.bboxElement.style.background = this.context.fillStyle;
     this.context.lineWidth = 3 * CONFIG.SCALE;
     this.context.setLineDash([6, 9]);
 
@@ -85,9 +89,9 @@ export class SelectTool implements PenType {
   disallowDrawing() {
     this.wk.classList.add("active");
 
-    this.wk.addEventListener("mousedown", this.wk_bindMDN);
-    this.wk.addEventListener("mousemove", this.wk_bindMMV);
-    this.wk.addEventListener("mouseup", this.wk_bindMUP);
+    ael(this.wk, ["mousedown", "touchstart", "pointerdown"], this.wk_bindMDN);
+    ael(this.wk, ["mousemove", "touchmove", "pointermove"], this.wk_bindMMV);
+    ael(this.wk, ["mouseup", "touchend", "pointerup"], this.wk_bindMUP);
   }
   allowDrawing() {
     this.wk.classList.remove("active");
@@ -164,8 +168,8 @@ export class SelectTool implements PenType {
     };
 
     const linePoly = createThickPolygon([newFrom, newTo], object.strokeWidth);
-    this.context.strokeStyle = "rgb(15, 15, 200)";
-    this.context.fillStyle = "rgba(15, 15, 200, 0.3)";
+    this.context.strokeStyle = hslColor(1);
+    this.context.fillStyle = hslColor(0.3);
     this.context.lineWidth = 3 * CONFIG.SCALE;
     this.context.setLineDash([6, 9]);
     this.context.beginPath();
@@ -208,8 +212,8 @@ export class SelectTool implements PenType {
     context.lineWidth = 0;
 
     console.log("Drawing ghost", poly);
-    this.context.strokeStyle = "rgb(15, 15, 200)";
-    this.context.fillStyle = "rgba(15, 15, 200, 0.3)";
+    this.context.strokeStyle = hslColor(1);
+    this.context.fillStyle = hslColor(0.3);
     this.context.lineWidth = 3 * CONFIG.SCALE;
     this.context.setLineDash([6, 9]);
 
@@ -362,9 +366,21 @@ export class SelectTool implements PenType {
     const resizeElement = document.createElement("div");
     resizeElement.classList.add("resize");
 
-    resizeElement.addEventListener("mousedown", this.resize_bindMDN);
-    resizeElement.addEventListener("mousemove", this.resize_bindMMV);
-    resizeElement.addEventListener("mouseup", this.resize_bindMUP);
+    ael(
+      resizeElement,
+      ["mousedown", "touchstart", "pointerdown"],
+      this.resize_bindMDN
+    );
+    ael(
+      resizeElement,
+      ["mousemove", "touchmove", "pointermove"],
+      this.resize_bindMMV
+    );
+    ael(
+      resizeElement,
+      ["mouseup", "touchend", "pointerup"],
+      this.resize_bindMUP
+    );
 
     return resizeElement;
   }
@@ -378,8 +394,8 @@ export class SelectTool implements PenType {
     const object = inst.drawnLayers[key].d as IDrawLine;
 
     const linePoly = createThickPolygon(npoints, object.strokeWidth);
-    this.context.strokeStyle = "rgb(15, 15, 200)";
-    this.context.fillStyle = "rgba(15, 15, 200, 0.3)";
+    this.context.strokeStyle = hslColor(1);
+    this.context.fillStyle = hslColor(0.3);
     this.context.lineWidth = 3 * CONFIG.SCALE;
     this.context.setLineDash([6, 9]);
     this.context.beginPath();
@@ -474,8 +490,8 @@ export class SelectTool implements PenType {
     context.fillStyle = fillColor;
     context.lineWidth = 0;
 
-    this.context.strokeStyle = "rgb(15, 15, 200)";
-    this.context.fillStyle = "rgba(15, 15, 200, 0.3)";
+    this.context.strokeStyle = hslColor(1);
+    this.context.fillStyle = hslColor(0.3);
     this.context.lineWidth = 3 * CONFIG.SCALE;
     this.context.setLineDash([6, 9]);
 
@@ -648,9 +664,21 @@ export class SelectTool implements PenType {
     const rotateElement = document.createElement("div");
     rotateElement.classList.add("rotate");
 
-    rotateElement.addEventListener("mousedown", this.rotate_bindMDN);
-    rotateElement.addEventListener("mousemove", this.rotate_bindMMV);
-    rotateElement.addEventListener("mouseup", this.rotate_bindMUP);
+    ael(
+      rotateElement,
+      ["mousedown", "touchstart", "pointerdown"],
+      this.rotate_bindMDN
+    );
+    ael(
+      rotateElement,
+      ["mousemove", "touchmove", "pointermove"],
+      this.rotate_bindMMV
+    );
+    ael(
+      rotateElement,
+      ["mouseup", "touchend", "pointerup"],
+      this.rotate_bindMUP
+    );
 
     return rotateElement;
   }
@@ -869,37 +897,39 @@ export class SelectTool implements PenType {
     return flipYButton;
   }
 
-setupCopyButton() {
-    const removeButton = document.createElement("div");
-    removeButton.style.position = "absolute";
-    removeButton.style.right = "-20px";
-    removeButton.style.bottom = "-20px";
-    removeButton.style.width = "20px";
-    removeButton.style.height = "20px";
-    removeButton.style.backgroundColor = "white";
-    removeButton.style.color = "black";
-    removeButton.style.textAlign = "center";
-    removeButton.style.lineHeight = "20px";
-    removeButton.style.cursor = "pointer";
-    removeButton.style.border = "1px solid black";
-    removeButton.style.display = "flex";
-    removeButton.style.justifyContent = "center";
-    removeButton.style.alignItems = "center";
+  setupCopyButton() {
+    const copyButton = document.createElement("div");
+    copyButton.style.position = "absolute";
+    copyButton.style.right = "-20px";
+    copyButton.style.bottom = "-20px";
+    copyButton.style.width = "20px";
+    copyButton.style.height = "20px";
+    copyButton.style.backgroundColor = "white";
+    copyButton.style.color = "black";
+    copyButton.style.textAlign = "center";
+    copyButton.style.lineHeight = "20px";
+    copyButton.style.cursor = "pointer";
+    copyButton.style.border = "1px solid black";
+    copyButton.style.display = "flex";
+    copyButton.style.justifyContent = "center";
+    copyButton.style.alignItems = "center";
     // svg trash icon
-    removeButton.innerHTML = `Copy`;
+    copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentcolor"><path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z"/></svg>`;
 
-    removeButton.addEventListener("click", () => {
-    let id:string[] =[]  
-for (let i = 0; i < this.selectedObjects.length; i++) {
-        id.push(fabricAdd(getInstance().drawnLayers[this.selectedObjects[i]].d));
+    copyButton.addEventListener("click", () => {
+      let id: string[] = [];
+      for (let i = 0; i < this.selectedObjects.length; i++) {
+        id.push(
+          fabricAdd(getInstance().drawnLayers[this.selectedObjects[i]].d)
+        );
       }
       this.disselect();
       this.handleSelect(id);
-      
+
       getInstance().saveAsHistory();
     });
 
-    return removeButton;
+    return copyButton;
   }
 
   setupBBox(bbox: Polygon) {
@@ -921,15 +951,27 @@ for (let i = 0; i < this.selectedObjects.length; i++) {
     tools.appendChild(this.setupTransformButton());
     tools.appendChild(this.setupFlipXButton());
     tools.appendChild(this.setupFlipYButton());
-tools.appendChild(this.setupCopyButton());
+    tools.appendChild(this.setupCopyButton());
     bboxElement.appendChild(tools);
 
     this.wk.appendChild(bboxElement);
     this.bboxElement = bboxElement;
 
-    this.bboxElement.addEventListener("mousedown", this.bbox_bindMDN);
-    this.bboxElement.addEventListener("mousemove", this.bbox_bindMMV);
-    this.bboxElement.addEventListener("mouseup", this.bbox_bindMUP);
+    ael(
+      this.bboxElement,
+      ["mousedown", "touchstart", "pointerdown"],
+      this.bbox_bindMDN
+    );
+    ael(
+      this.bboxElement,
+      ["mousemove", "touchmove", "pointermove"],
+      this.bbox_bindMMV
+    );
+    ael(
+      this.bboxElement,
+      ["mouseup", "touchend", "pointerup"],
+      this.bbox_bindMUP
+    );
   }
 
   destroyBBox() {
@@ -995,7 +1037,7 @@ tools.appendChild(this.setupCopyButton());
     this.canvas_state.polygon.push({ x, y });
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.context.strokeStyle = "rgb(0, 0, 0)";
-    this.context.fillStyle = "rgba(15, 15, 200, 0.3)";
+    this.context.fillStyle = hslColor(0.3);
     this.context.lineWidth = 3 * CONFIG.SCALE;
     this.context.setLineDash([6, 9]);
     this.context.beginPath();
@@ -1033,7 +1075,7 @@ tools.appendChild(this.setupCopyButton());
       const area = polygonArea(poly);
       const inter = intersect(this.canvas_state.polygon, poly);
 
-      this.context.fillStyle = "rgba(15, 15, 200, 0.3)";
+      this.context.fillStyle = hslColor(0.3);
       this.context.lineWidth = 2 * CONFIG.SCALE;
 
       if (inter.length === 0) continue;
@@ -1060,14 +1102,14 @@ tools.appendChild(this.setupCopyButton());
     const mup = this.canvas_mouseUp.bind(this);
 
     this.canvas_initState();
-    this.canvas.addEventListener("mousedown", mdn);
-    this.canvas.addEventListener("mousemove", mmv);
-    document.addEventListener("mouseup", mup);
+    ael(this.canvas, ["mousedown", "touchstart", "pointerdown"], mdn);
+    ael(this.canvas, ["mousemove", "touchmove", "pointermove"], mmv);
+    ael(document, ["mouseup", "touchend", "pointerup"], mup);
 
     return () => {
-      this.canvas.removeEventListener("mousedown", mdn);
-      this.canvas.removeEventListener("mousemove", mmv);
-      document.removeEventListener("mouseup", mup);
+      rel(this.canvas, ["mousedown", "touchstart", "pointerdown"], mdn);
+      rel(this.canvas, ["mousemove", "touchmove", "pointermove"], mmv);
+      rel(document, ["mouseup", "touchend", "pointerup"], mup);
 
       this.allowDrawing();
       this.destroyBBox();

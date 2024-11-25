@@ -1,3 +1,4 @@
+import { ael, rel } from "../utils/addEventListener";
 import { IProps, PenType } from "./toolType";
 
 export class ExampleTool implements PenType {
@@ -16,13 +17,13 @@ export class ExampleTool implements PenType {
     const mouseDown = () => {};
     const mouseMove = () => {};
     const mouseUp = () => {};
-    this.canvas.addEventListener("mousemove", mouseMove);
-    this.canvas.addEventListener("mousedown", mouseDown);
-    document.addEventListener("mouseup", mouseUp);
+    ael(this.canvas, ["mousedown", "touchstart", "pointerdown"], mouseDown);
+    ael(this.canvas, ["mousemove", "touchmove", "pointermove"], mouseMove);
+    ael(document, ["mouseup", "touchend", "pointerup"], mouseUp);
     return () => {
-      this.canvas.removeEventListener("mousedown", mouseDown);
-      this.canvas.removeEventListener("mousemove", mouseMove);
-      document.removeEventListener("mouseup", mouseUp);
+      rel(this.canvas, ["mousedown", "touchstart", "pointerdown"], mouseDown);
+      rel(this.canvas, ["mousemove", "touchmove", "pointermove"], mouseMove);
+      rel(document, ["mouseup", "touchend", "pointerup"], mouseUp);
     };
   }
 }

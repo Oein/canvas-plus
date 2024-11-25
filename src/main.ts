@@ -18,6 +18,8 @@ import TextInputModal from "./utils/textInputModal";
 import renderTextToImageWebPTransparent from "./utils/twebp";
 import CONFIG from "./utils/config";
 import CoordinateInputModal from "./utils/xyInputModal";
+import { ael } from "./utils/addEventListener";
+import debug from "./utils/debugMsg";
 
 // const inst = await (false
 //   ? await fetch("/nocanvas.bin")
@@ -28,8 +30,8 @@ let instances: Instance[] = [new Instance()];
 let currentInstance = 0;
 export let getInstance = () => instances[currentInstance];
 export let fabricAdd = (object: IDraw) => {
-  instances[currentInstance].fabricAdd(object);
   console.log("Add object!", currentInstance, object);
+  return instances[currentInstance].fabricAdd(object);
 };
 export let transform = (id: string, dx: number, dy: number, nzi?: number) => {
   instances[currentInstance].transform(id, dx, dy, nzi);
@@ -81,10 +83,10 @@ const main = () => {
 
   const [drawCanvas, context] = createCanvas();
   drawCanvas.id = "draw-layer";
-  drawCanvas.addEventListener("mousedown", () => {
+  ael(drawCanvas, ["mousedown", "touchstart", "pointerdown"], () => {
     document.getElementById("disup")?.classList.add("hide");
   });
-  drawCanvas.addEventListener("mouseup", () => {
+  ael(drawCanvas, ["mouseup", "touchend", "pointerup"], () => {
     document.getElementById("disup")?.classList.remove("hide");
   });
   document.getElementById("drawnLayer")?.appendChild(drawCanvas);
@@ -92,6 +94,12 @@ const main = () => {
   const drawnLayer = document.getElementById("drawnLayer");
   if (!drawnLayer) return;
   drawnLayer.appendChild(instances[0].instanceElement);
+
+  // watch for resize
+  window.addEventListener("resize", () => {
+    drawCanvas.width = window.innerWidth * CONFIG.SCALE;
+    drawCanvas.height = window.innerHeight * CONFIG.SCALE;
+  });
 
   // paste image
   const pasteImage = (e: ClipboardEvent) => {
@@ -156,6 +164,7 @@ const main = () => {
   buttons[currentTool].classList.add("active");
   for (let i = 0; i < buttons.length; i++) {
     buttons[i].addEventListener("click", () => {
+      debug("Tool: " + i);
       if (currentTool == 4 && i == 4) {
         // ask for new dash array
         const dashModal = new CoordinateInputModal(
