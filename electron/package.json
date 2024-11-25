@@ -1,8 +1,13 @@
 {
-  "name": "electron",
-  "version": "1.0.0",
+  "name": "canvas-plus",
+  "version": "1.3.0",
   "main": "./dist/index.js",
+  "description": "Lasso를 통한 Object 선택, rotate, scale, transform등을 지원하는 그림판.",
   "license": "MIT",
+  "author": {
+    "name": "박오인",
+    "email": "oein0219@gmail.com"
+  },
   "devDependencies": {
     "@types/node": "^22.9.3",
     "@types/pdfkit": "^0.13.5",
@@ -20,8 +25,16 @@
     "screenshot-desktop": "^1.15.0"
   },
   "build": {
+    "appId": "kr.oein.canvas-plus",
     "directories": {
-      "output": "releases/${platform}/${arch}"
+      "output": "releases"
+    },
+    "win": {
+      "defaultArch": "x64",
+      "target": [
+        "portable",
+        "zip"
+      ]
     }
   }
 }
