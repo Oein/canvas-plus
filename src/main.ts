@@ -163,8 +163,8 @@ const main = () => {
             if (!dashArray) return;
             setState("DASHLINE", [dashArray.x, dashArray.y]);
           },
-          "Dash array",
-          "Default 12, 18"
+          "간격 설정",
+          "기본값 (12, 18)<br />(그려지는 길이, 빈 길이) 순서 입니다."
         );
         dashModal.open();
       }

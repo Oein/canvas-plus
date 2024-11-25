@@ -50,10 +50,11 @@ export default class CoordinateInputModal {
 
     if (description) {
       const descriptionElement = document.createElement("p");
-      descriptionElement.textContent = description;
+      descriptionElement.innerHTML = description;
       descriptionElement.style.marginBottom = "10px";
       descriptionElement.style.marginTop = "0";
       descriptionElement.style.padding = "0";
+      descriptionElement.style.fontSize = "14px";
       descriptionElement.style.color = "#666";
       descriptionElement.style.textAlign = "center";
       contentBox.appendChild(descriptionElement);
