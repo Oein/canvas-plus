@@ -889,10 +889,12 @@ setupCopyButton() {
     removeButton.innerHTML = `Copy`;
 
     removeButton.addEventListener("click", () => {
-      for (let i = 0; i < this.selectedObjects.length; i++) {
-        fabricAdd(getInstance().drawnLayers[this.selectedObjects[i]].d);
+    let id:string[] =[]  
+for (let i = 0; i < this.selectedObjects.length; i++) {
+        id.push(fabricAdd(getInstance().drawnLayers[this.selectedObjects[i]].d));
       }
       this.disselect();
+      this.handleSelect(id);
       
       getInstance().saveAsHistory();
     });
