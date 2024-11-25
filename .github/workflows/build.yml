@@ -20,7 +20,7 @@ jobs:
       - name: Copy files
         run: Remove-Item -Path electron\web -Recurse -Force
       - name: Copy files
-        run: copy dist\* electron\web
+        run: robocopy dist\* electron\web /s /e
       - name: Install dependencies
         working-directory: ./electron
         run: npm install
