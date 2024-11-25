@@ -16,6 +16,10 @@ jobs:
       - name: Build vite
         run: npm run build
       - name: Copy files
+        run: copy electron\web\wincap.html dist\wincap.html
+      - name: Copy files
+        run: rmdir /s /q electron\web
+      - name: Copy files
         run: copy dist\* electron\web
       - name: Install dependencies
         working-directory: ./electron
