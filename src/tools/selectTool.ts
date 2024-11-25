@@ -6,7 +6,7 @@ import rotateRect from "../algorithm/rotateImage";
 import rotateLine from "../algorithm/rotateLine";
 import rotatePolygon from "../algorithm/rotatePolygon";
 import createThickPolygon from "../algorithm/strokePolygon";
-import { getInstance, transform } from "../main";
+import { getInstance, transform, fabricAdd } from "../main";
 import { IDrawImage, IDrawLine } from "../types/draw";
 import CONFIG from "../utils/config";
 import { getState } from "../utils/state";
@@ -869,6 +869,37 @@ export class SelectTool implements PenType {
     return flipYButton;
   }
 
+setupCopyButton() {
+    const removeButton = document.createElement("div");
+    removeButton.style.position = "absolute";
+    removeButton.style.right = "-20px";
+    removeButton.style.bottom = "-20px";
+    removeButton.style.width = "20px";
+    removeButton.style.height = "20px";
+    removeButton.style.backgroundColor = "white";
+    removeButton.style.color = "black";
+    removeButton.style.textAlign = "center";
+    removeButton.style.lineHeight = "20px";
+    removeButton.style.cursor = "pointer";
+    removeButton.style.border = "1px solid black";
+    removeButton.style.display = "flex";
+    removeButton.style.justifyContent = "center";
+    removeButton.style.alignItems = "center";
+    // svg trash icon
+    removeButton.innerHTML = `Copy`;
+
+    removeButton.addEventListener("click", () => {
+      for (let i = 0; i < this.selectedObjects.length; i++) {
+        fabricAdd(getInstance().drawnLayers[this.selectedObjects[i]].d);
+      }
+      this.disselect();
+      
+      getInstance().saveAsHistory();
+    });
+
+    return removeButton;
+  }
+
   setupBBox(bbox: Polygon) {
     this.bboxRotate = 0;
     const bboxElement = document.createElement("div");
@@ -888,6 +919,7 @@ export class SelectTool implements PenType {
     tools.appendChild(this.setupTransformButton());
     tools.appendChild(this.setupFlipXButton());
     tools.appendChild(this.setupFlipYButton());
+tools.appendChild(this.setupCopyButton());
     bboxElement.appendChild(tools);
 
     this.wk.appendChild(bboxElement);
