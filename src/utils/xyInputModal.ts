@@ -10,7 +10,9 @@ export default class CoordinateInputModal {
   private activeInput!: HTMLInputElement; // Active input is explicitly non-null
 
   constructor(
-    private onDone: (result: { x: number; y: number } | null) => void
+    private onDone: (result: { x: number; y: number } | null) => void,
+    heading?: string,
+    description?: string
   ) {
     // Create the modal container
     this.modal = document.createElement("div");
@@ -35,6 +37,27 @@ export default class CoordinateInputModal {
     contentBox.style.width = "300px";
     contentBox.style.boxSizing = "border-box";
     contentBox.style.position = "relative";
+
+    if (heading) {
+      const headingElement = document.createElement("h2");
+      headingElement.textContent = heading;
+      headingElement.style.marginBottom = ".5rem";
+      headingElement.style.marginTop = "0";
+      headingElement.style.padding = "0";
+      headingElement.style.textAlign = "center";
+      contentBox.appendChild(headingElement);
+    }
+
+    if (description) {
+      const descriptionElement = document.createElement("p");
+      descriptionElement.textContent = description;
+      descriptionElement.style.marginBottom = "10px";
+      descriptionElement.style.marginTop = "0";
+      descriptionElement.style.padding = "0";
+      descriptionElement.style.color = "#666";
+      descriptionElement.style.textAlign = "center";
+      contentBox.appendChild(descriptionElement);
+    }
 
     // Create the x-coordinate input
     const xContainer = document.createElement("div");
