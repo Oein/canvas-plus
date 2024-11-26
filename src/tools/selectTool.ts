@@ -747,8 +747,8 @@ export class SelectTool implements PenType {
   setupRemoveButton() {
     const removeButton = document.createElement("div");
     removeButton.style.position = "absolute";
-    removeButton.style.left = "-20px";
-    removeButton.style.bottom = "-20px";
+    removeButton.style.left = "0px";
+    removeButton.style.bottom = "0px";
     removeButton.style.width = "20px";
     removeButton.style.height = "20px";
     removeButton.style.backgroundColor = "white";
@@ -777,8 +777,8 @@ export class SelectTool implements PenType {
   setupTransformButton() {
     const transformButton = document.createElement("div");
     transformButton.style.position = "absolute";
-    transformButton.style.left = "-20px";
-    transformButton.style.top = "-20px";
+    transformButton.style.left = "30px";
+    transformButton.style.bottom = "0px";
     transformButton.style.width = "20px";
     transformButton.style.height = "20px";
     transformButton.style.backgroundColor = "white";
@@ -818,8 +818,8 @@ export class SelectTool implements PenType {
   setupFlipXButton() {
     const flipXButton = document.createElement("div");
     flipXButton.style.position = "absolute";
-    flipXButton.style.right = "-20px";
-    flipXButton.style.top = "-20px";
+    flipXButton.style.left = "60px";
+    flipXButton.style.bottom = "0px";
     flipXButton.style.width = "20px";
     flipXButton.style.height = "20px";
     flipXButton.style.backgroundColor = "white";
@@ -859,8 +859,8 @@ export class SelectTool implements PenType {
   setupFlipYButton() {
     const flipYButton = document.createElement("div");
     flipYButton.style.position = "absolute";
-    flipYButton.style.right = "-40px";
-    flipYButton.style.top = "-20px";
+    flipYButton.style.left = "80px";
+    flipYButton.style.bottom = "0px";
     flipYButton.style.width = "20px";
     flipYButton.style.height = "20px";
     flipYButton.style.backgroundColor = "white";
@@ -900,8 +900,8 @@ export class SelectTool implements PenType {
   setupCopyButton() {
     const copyButton = document.createElement("div");
     copyButton.style.position = "absolute";
-    copyButton.style.right = "-20px";
-    copyButton.style.bottom = "-20px";
+    copyButton.style.right = "0px";
+    copyButton.style.top = "0px";
     copyButton.style.width = "20px";
     copyButton.style.height = "20px";
     copyButton.style.backgroundColor = "white";
