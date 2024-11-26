@@ -2,6 +2,7 @@ import { isPointInPolygon } from "../algorithm/pointInPoly";
 import { getInstance } from "../main";
 import { ael, rel } from "../utils/addEventListener";
 import CONFIG from "../utils/config";
+import debug from "../utils/debugMsg";
 import { IProps, PenType } from "./toolType";
 
 export class EraseTool implements PenType {
@@ -18,7 +19,7 @@ export class EraseTool implements PenType {
   state: "ERASE" | "NONE" = "NONE";
 
   apply() {
-    console.log("EraseTool Apply");
+    debug(`<EraTl> Apply`);
     const mouseDown = () => {
       this.state = "ERASE";
     };

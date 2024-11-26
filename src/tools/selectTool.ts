@@ -10,6 +10,7 @@ import { getInstance, transform, fabricAdd } from "../main";
 import { IDrawImage, IDrawLine } from "../types/draw";
 import { ael, rel } from "../utils/addEventListener";
 import CONFIG from "../utils/config";
+import debug from "../utils/debugMsg";
 import hslColor from "../utils/hslColor";
 import { getState } from "../utils/state";
 import CoordinateInputModal from "../utils/xyInputModal";
@@ -76,10 +77,15 @@ export class SelectTool implements PenType {
     if (this.workingState == "ROTATE") return this.rotate_mouseMove(e);
   }
   wk_mouseUp(e: MouseEvent) {
+    debug(`<SelTl> MOUSEUP ${this.workingState}`);
     if (this.workingState === "BBOX_MOVE") return this.bbox_mouseUp(e);
     if (this.workingState === "RESIZE") return this.resize_mouseUp(e);
-    if (this.workingState === "ROTATE") return this.rotate_mouseUp();
-    if (this.workingState === "SELECTED") return this.disselect();
+    if (this.workingState === "ROTATE") return this.rotate_mouseUp(e);
+    if (this.workingState === "SELECTED") {
+      e.preventDefault();
+      e.stopPropagation();
+      return this.disselect();
+    }
   }
 
   wk_bindMDN = this.wk_mouseDown.bind(this);
@@ -211,7 +217,6 @@ export class SelectTool implements PenType {
     context.fillStyle = fillColor;
     context.lineWidth = 0;
 
-    console.log("Drawing ghost", poly);
     this.context.strokeStyle = hslColor(1);
     this.context.fillStyle = hslColor(0.3);
     this.context.lineWidth = 3 * CONFIG.SCALE;
@@ -291,6 +296,7 @@ export class SelectTool implements PenType {
   resize_mouseDown(e: MouseEvent) {
     e.stopPropagation();
     this.workingState = "RESIZE";
+    debug(`<SelTl> RESIZE_MOUSEDOWN`);
 
     this.mouseStart = { x: e.clientX, y: e.clientY };
     this.lastApplied = { x: e.clientX, y: e.clientY };
@@ -356,6 +362,8 @@ export class SelectTool implements PenType {
         continue;
       }
     }
+
+    debug(`<SelTl> RESIZE_MOUSEUP`);
   }
 
   resize_bindMDN = this.resize_mouseDown.bind(this);
@@ -592,11 +600,17 @@ export class SelectTool implements PenType {
       );
     }
   }
-  rotate_mouseUp() {
+  rotate_mouseUp(e: MouseEvent) {
     if (this.workingState !== "ROTATE") return;
+    e.preventDefault();
+    e.stopPropagation();
     this.workingState = "SELECTED";
     this.rotate_applyPoly();
     getInstance().saveAsHistory();
+    debug(`<SelTl> ROTATE_MOUSEUP`);
+    const sv = [...this.selectedObjects];
+    this.disselect();
+    this.handleSelect(sv);
   }
 
   rotate_applyPoly() {
@@ -724,6 +738,7 @@ export class SelectTool implements PenType {
   bbox_mouseUp(e: MouseEvent) {
     if (this.workingState != "BBOX_MOVE") return;
     e.stopPropagation();
+    debug(`<SelTl> BBOX_MOUSEUP`);
     this.workingState = "SELECTED";
 
     getInstance().saveAsHistory();
@@ -744,26 +759,61 @@ export class SelectTool implements PenType {
   bbox_bindMMV = this.bbox_mouseMove.bind(this);
   bbox_bindMUP = this.bbox_mouseUp.bind(this);
 
+  setupToolButton(
+    type: "REMOVE" | "TRANSFORM" | "FLIPX" | "FLIPY" | "COPY",
+    el: HTMLElement
+  ) {
+    el.style.position = "absolute";
+    el.style.width = "20px";
+    el.style.height = "20px";
+    el.style.backgroundColor = "white";
+    el.style.color = "black";
+    el.style.textAlign = "center";
+    el.style.lineHeight = "20px";
+    el.style.cursor = "pointer";
+    el.style.border = "1px solid black";
+    el.style.display = "flex";
+    el.style.justifyContent = "center";
+    el.style.alignItems = "center";
+    el.style.zIndex = "10000000";
+    el.style.pointerEvents = "all";
+
+    switch (type) {
+      case "REMOVE":
+        el.style.left = "-30px";
+        el.style.top = "0px";
+        break;
+      case "TRANSFORM":
+        el.style.left = "-30px";
+        el.style.top = "20px";
+        break;
+      case "FLIPX":
+        el.style.left = "-30px";
+        el.style.top = "40px";
+        break;
+      case "FLIPY":
+        el.style.left = "-30px";
+        el.style.top = "60px";
+        break;
+      case "COPY":
+        el.style.right = "-30px";
+        el.style.top = "0px";
+        break;
+    }
+  }
+
+  setupButtonEventHandler(el: HTMLElement, evHandler: () => any) {
+    el.addEventListener("pointerup", (e) => {
+      e.preventDefault();
+      // e.stopPropagation();
+      setTimeout(() => evHandler(), 3);
+    });
+  }
+
   setupRemoveButton() {
     const removeButton = document.createElement("div");
-    removeButton.style.position = "absolute";
-    removeButton.style.left = "0px";
-    removeButton.style.bottom = "0px";
-    removeButton.style.width = "20px";
-    removeButton.style.height = "20px";
-    removeButton.style.backgroundColor = "white";
-    removeButton.style.color = "black";
-    removeButton.style.textAlign = "center";
-    removeButton.style.lineHeight = "20px";
-    removeButton.style.cursor = "pointer";
-    removeButton.style.border = "1px solid black";
-    removeButton.style.display = "flex";
-    removeButton.style.justifyContent = "center";
-    removeButton.style.alignItems = "center";
-    // svg trash icon
-    removeButton.innerHTML = `<svg style="width: 20px; height: 20px;"  xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>`;
-
-    removeButton.addEventListener("click", () => {
+    this.setupToolButton("REMOVE", removeButton);
+    this.setupButtonEventHandler(removeButton, () => {
       for (let i = 0; i < this.selectedObjects.length; i++) {
         getInstance().removeLayer(this.selectedObjects[i]);
       }
@@ -771,29 +821,15 @@ export class SelectTool implements PenType {
       getInstance().saveAsHistory();
     });
 
+    removeButton.innerHTML = `<svg style="width: 20px; height: 20px;"  xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>`;
+
     return removeButton;
   }
 
   setupTransformButton() {
     const transformButton = document.createElement("div");
-    transformButton.style.position = "absolute";
-    transformButton.style.left = "30px";
-    transformButton.style.bottom = "0px";
-    transformButton.style.width = "20px";
-    transformButton.style.height = "20px";
-    transformButton.style.backgroundColor = "white";
-    transformButton.style.color = "black";
-    transformButton.style.textAlign = "center";
-    transformButton.style.lineHeight = "20px";
-    transformButton.style.cursor = "pointer";
-    transformButton.style.border = "1px solid black";
-    transformButton.style.display = "flex";
-    transformButton.style.justifyContent = "center";
-    transformButton.style.alignItems = "center";
-    // svg trash icon
-    transformButton.innerHTML = `<svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000"><path d="M440-40v-167l-44 43-56-56 140-140 140 140-56 56-44-43v167h-80ZM220-340l-56-56 43-44H40v-80h167l-43-44 56-56 140 140-140 140Zm520 0L600-480l140-140 56 56-43 44h167v80H753l43 44-56 56Zm-260-80q-25 0-42.5-17.5T420-480q0-25 17.5-42.5T480-540q25 0 42.5 17.5T540-480q0 25-17.5 42.5T480-420Zm0-180L340-740l56-56 44 43v-167h80v167l44-43 56 56-140 140Z"/></svg>`;
-
-    transformButton.addEventListener("click", () => {
+    this.setupToolButton("TRANSFORM", transformButton);
+    this.setupButtonEventHandler(transformButton, () => {
       const modal = new CoordinateInputModal(
         (resu) => {
           if (resu === null) return;
@@ -812,29 +848,15 @@ export class SelectTool implements PenType {
       modal.open();
     });
 
+    transformButton.innerHTML = `<svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000"><path d="M440-40v-167l-44 43-56-56 140-140 140 140-56 56-44-43v167h-80ZM220-340l-56-56 43-44H40v-80h167l-43-44 56-56 140 140-140 140Zm520 0L600-480l140-140 56 56-43 44h167v80H753l43 44-56 56Zm-260-80q-25 0-42.5-17.5T420-480q0-25 17.5-42.5T480-540q25 0 42.5 17.5T540-480q0 25-17.5 42.5T480-420Zm0-180L340-740l56-56 44 43v-167h80v167l44-43 56 56-140 140Z"/></svg>`;
+
     return transformButton;
   }
 
   setupFlipXButton() {
     const flipXButton = document.createElement("div");
-    flipXButton.style.position = "absolute";
-    flipXButton.style.left = "60px";
-    flipXButton.style.bottom = "0px";
-    flipXButton.style.width = "20px";
-    flipXButton.style.height = "20px";
-    flipXButton.style.backgroundColor = "white";
-    flipXButton.style.color = "black";
-    flipXButton.style.textAlign = "center";
-    flipXButton.style.lineHeight = "20px";
-    flipXButton.style.cursor = "pointer";
-    flipXButton.style.border = "1px solid black";
-    flipXButton.style.display = "flex";
-    flipXButton.style.justifyContent = "center";
-    flipXButton.style.alignItems = "center";
-    // svg trash icon
-    flipXButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentcolor"><path d="M360-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h160v80H200v560h160v80Zm80 80v-880h80v880h-80Zm160-80v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80q0 33-23.5 56.5T760-120Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80q33 0 56.5 23.5T840-760h-80Z"/></svg>`;
-
-    flipXButton.addEventListener("click", () => {
+    this.setupToolButton("FLIPX", flipXButton);
+    this.setupButtonEventHandler(flipXButton, () => {
       const nzi = zIndex();
       const bbox = computeBoundingRectangle(
         this.selectedObjects.map((key) => getInstance().drawnPolygons[key])
@@ -853,29 +875,15 @@ export class SelectTool implements PenType {
       this.context_drawSelected(0, 0);
     });
 
+    flipXButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentcolor"><path d="M360-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h160v80H200v560h160v80Zm80 80v-880h80v880h-80Zm160-80v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80q0 33-23.5 56.5T760-120Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80q33 0 56.5 23.5T840-760h-80Z"/></svg>`;
+
     return flipXButton;
   }
 
   setupFlipYButton() {
     const flipYButton = document.createElement("div");
-    flipYButton.style.position = "absolute";
-    flipYButton.style.left = "80px";
-    flipYButton.style.bottom = "0px";
-    flipYButton.style.width = "20px";
-    flipYButton.style.height = "20px";
-    flipYButton.style.backgroundColor = "white";
-    flipYButton.style.color = "black";
-    flipYButton.style.textAlign = "center";
-    flipYButton.style.lineHeight = "20px";
-    flipYButton.style.cursor = "pointer";
-    flipYButton.style.border = "1px solid black";
-    flipYButton.style.display = "flex";
-    flipYButton.style.justifyContent = "center";
-    flipYButton.style.alignItems = "center";
-    // svg trash icon
-    flipYButton.innerHTML = `<svg style="rotate: 90deg;" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentcolor"><path d="M360-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h160v80H200v560h160v80Zm80 80v-880h80v880h-80Zm160-80v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80q0 33-23.5 56.5T760-120Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80q33 0 56.5 23.5T840-760h-80Z"/></svg>`;
-
-    flipYButton.addEventListener("click", () => {
+    this.setupToolButton("FLIPY", flipYButton);
+    this.setupButtonEventHandler(flipYButton, () => {
       const nzi = zIndex();
       const bbox = computeBoundingRectangle(
         this.selectedObjects.map((key) => getInstance().drawnPolygons[key])
@@ -894,29 +902,15 @@ export class SelectTool implements PenType {
       this.context_drawSelected(0, 0);
     });
 
+    flipYButton.innerHTML = `<svg style="rotate: 90deg;" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentcolor"><path d="M360-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h160v80H200v560h160v80Zm80 80v-880h80v880h-80Zm160-80v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80q0 33-23.5 56.5T760-120Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80q33 0 56.5 23.5T840-760h-80Z"/></svg>`;
+
     return flipYButton;
   }
 
   setupCopyButton() {
     const copyButton = document.createElement("div");
-    copyButton.style.position = "absolute";
-    copyButton.style.right = "0px";
-    copyButton.style.top = "0px";
-    copyButton.style.width = "20px";
-    copyButton.style.height = "20px";
-    copyButton.style.backgroundColor = "white";
-    copyButton.style.color = "black";
-    copyButton.style.textAlign = "center";
-    copyButton.style.lineHeight = "20px";
-    copyButton.style.cursor = "pointer";
-    copyButton.style.border = "1px solid black";
-    copyButton.style.display = "flex";
-    copyButton.style.justifyContent = "center";
-    copyButton.style.alignItems = "center";
-    // svg trash icon
-    copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentcolor"><path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z"/></svg>`;
-
-    copyButton.addEventListener("click", () => {
+    this.setupToolButton("COPY", copyButton);
+    this.setupButtonEventHandler(copyButton, () => {
       let id: string[] = [];
       for (let i = 0; i < this.selectedObjects.length; i++) {
         id.push(
@@ -928,6 +922,8 @@ export class SelectTool implements PenType {
 
       getInstance().saveAsHistory();
     });
+
+    copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentcolor"><path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z"/></svg>`;
 
     return copyButton;
   }
@@ -942,17 +938,14 @@ export class SelectTool implements PenType {
     bboxElement.style.width = `${(bbox[2].x - bbox[0].x) / CONFIG.SCALE}px`;
     bboxElement.style.height = `${(bbox[1].y - bbox[0].y) / CONFIG.SCALE}px`;
 
-    const tools = document.createElement("div");
-    tools.classList.add("bbox-tools");
-
-    tools.appendChild(this.setupResize());
     bboxElement.appendChild(this.setupRotate());
-    tools.appendChild(this.setupRemoveButton());
-    tools.appendChild(this.setupTransformButton());
-    tools.appendChild(this.setupFlipXButton());
-    tools.appendChild(this.setupFlipYButton());
-    tools.appendChild(this.setupCopyButton());
-    bboxElement.appendChild(tools);
+
+    bboxElement.appendChild(this.setupResize());
+    bboxElement.appendChild(this.setupRemoveButton());
+    bboxElement.appendChild(this.setupTransformButton());
+    bboxElement.appendChild(this.setupFlipXButton());
+    bboxElement.appendChild(this.setupFlipYButton());
+    bboxElement.appendChild(this.setupCopyButton());
 
     this.wk.appendChild(bboxElement);
     this.bboxElement = bboxElement;
@@ -981,6 +974,7 @@ export class SelectTool implements PenType {
     }
   }
   disselect() {
+    debug(`<SelTl> Disselect`);
     this.selectedObjects = [];
     this.destroyBBox();
     this.allowDrawing();
@@ -1060,9 +1054,9 @@ export class SelectTool implements PenType {
   }
   canvas_mouseUp() {
     if (!this.canvas_state.dragging) return;
-    console.log("Endup selecting with polygon", this.canvas_state.polygon);
     this.canvas_state.dragging = false;
     this.workingState = "SELECTED";
+    debug(`<SelTl> CV MouseUp with ${this.canvas_state.polygon.length} points`);
 
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -1095,7 +1089,7 @@ export class SelectTool implements PenType {
   }
 
   apply() {
-    console.log("SelectTool Apply");
+    debug(`<SelTl> Apply`);
 
     const mdn = this.canvas_mouseDown.bind(this);
     const mmv = this.canvas_mouseMove.bind(this);

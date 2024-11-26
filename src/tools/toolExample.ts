@@ -1,4 +1,5 @@
 import { ael, rel } from "../utils/addEventListener";
+import debug from "../utils/debugMsg";
 import { IProps, PenType } from "./toolType";
 
 export class ExampleTool implements PenType {
@@ -13,7 +14,7 @@ export class ExampleTool implements PenType {
   }
 
   apply() {
-    console.log("ExampleTool Apply");
+    debug(`<ExaTl> Apply`);
     const mouseDown = () => {};
     const mouseMove = () => {};
     const mouseUp = () => {};

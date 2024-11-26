@@ -1,8 +1,12 @@
+import debug from "./debugMsg";
+
 const CONFIG = {
-  SCALE: 2,
-  SNAP_DEG: 2.5,
-  SELECT_RATIO: 0.01 * 0.01,
+  SCALE: 3,
+  SNAP_DEG: 2,
+  SELECT_RATIO: 0.3,
   MAX_HISTORY: 50,
 };
+
+debug(`<Cnfig> ${JSON.stringify(CONFIG)}`);
 
 export default CONFIG;

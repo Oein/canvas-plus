@@ -1,3 +1,5 @@
+import debug from "./debugMsg";
+
 const state: any = {
   PENCOLOR: "#000000",
   PENSTROKE: 3,
@@ -13,6 +15,7 @@ export function getState<T = any>(key: string) {
 }
 
 export function setState(key: string, value: any) {
+  debug(`<State> ${key} : ${value}`);
   state[key] = value;
 }
 

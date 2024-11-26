@@ -12,6 +12,7 @@ import {
 } from "../types/draw";
 import CONFIG from "../utils/config";
 import { createCanvas } from "../utils/createCanvas";
+import debug from "../utils/debugMsg";
 import zIndex from "../utils/zIndexManager";
 
 type IDrawnLayer = {
@@ -63,10 +64,6 @@ export default class Instance {
   }
 
   saveAsHistory() {
-    console.log(
-      { ...this.history[this.history.length - 1].idraw },
-      this.drawnLayers
-    );
     this.history.push({
       idraw: this.clonedLayer(),
       ipoly: { ...this.drawnPolygons },
@@ -74,7 +71,6 @@ export default class Instance {
     if (this.history.length > CONFIG.MAX_HISTORY) {
       this.history.shift();
     }
-    console.log("APD HIS");
   }
 
   drawnHistory2drawnLayer(history: { [key: string]: IDrawnHistory }): {
@@ -105,9 +101,8 @@ export default class Instance {
       return;
     }
 
-    console.log("FROM", { ...this.drawnLayers }, "TO", { ...history.idraw });
-
     const keys = Object.keys(this.drawnLayers);
+    debug(`<Insta> Undo ${keys.length} objects`);
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
       this.removeLayer(key);
@@ -135,21 +130,6 @@ export default class Instance {
     if (importData) {
       this.importInstance(importData);
     }
-
-    // watch window resize
-    window.addEventListener("resize", () => {
-      // just resize canvas
-      // do not chnage position
-
-      const keys = Object.keys(this.drawnLayers);
-      for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        const layer = this.drawnLayers[key];
-        layer.c.width = CONFIG.SCALE * window.innerWidth;
-        layer.c.height = CONFIG.SCALE * window.innerHeight;
-        this.render(layer.t, layer.d, key);
-      }
-    });
   }
 
   drawLine(object: IDrawLine, context: CanvasRenderingContext2D): Polygon {
@@ -547,23 +527,23 @@ export default class Instance {
       this.drawPolyToCanvas(object, canvas);
     }
 
-    console.log("Instance render", object, objectid);
+    debug(`<Insta> Render ${object.type} ${objectid}`);
     if (saveDrawnPoly) this.drawnPolygons[objectid] = polygon;
   }
 
   fabricAdd(object: IDraw) {
     const id = Math.random().toString(36).substr(2, 9);
 
+    debug(`<Insta> Add ${object.type} ${id}`);
+
     object.z = object.z || zIndex();
 
-    const [drawCanvas, context] = createCanvas();
-    drawCanvas.width = CONFIG.SCALE * window.innerWidth;
-    drawCanvas.height = CONFIG.SCALE * window.innerHeight;
+    const [drawCanvas, context] = createCanvas(() => {
+      this.rerender(id);
+    });
     drawCanvas.style.position = "absolute";
     drawCanvas.style.top = "0";
     drawCanvas.style.left = "0";
-    drawCanvas.style.width = "100vw";
-    drawCanvas.style.height = "100vh";
     drawCanvas.style.zIndex = object.z.toString();
     drawCanvas.setAttribute("data-id", id);
 
@@ -574,7 +554,6 @@ export default class Instance {
       d: object,
     };
 
-    console.log("Instance fabricAdd", object, id);
     this.render(context, object, id);
 
     return id;
@@ -605,8 +584,6 @@ export default class Instance {
         context.drawImage(layer.d.image, 0, 0);
         const blob = new Promise<Blob>((res) => {
           canvas.toBlob((blob) => {
-            const blobURL = URL.createObjectURL(blob!);
-            console.log("IMGBLOB", blobURL);
             res(blob!);
           }, "image/webp");
         });
@@ -711,11 +688,12 @@ export default class Instance {
     context.fillStyle = "white";
     context.fillRect(0, 0, canvas.width, canvas.height);
 
+    debug(`<Insta> Export ${keys.length} objects to image`);
+
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i][0] as string;
       const layer = this.drawnLayers[key];
       if (!layer) continue;
-      console.log("RENDER", key, layer.d);
       this.render(context, layer.d, key, false, false);
     }
 

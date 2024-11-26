@@ -20,16 +20,22 @@ export function ael(
         // }
         // if (e.includes("pointerdown")) e.target.setPointerCapture(e.pointerId);
         if (t.includes("touchdown")) return;
+        if (t.includes("touchup")) return;
         if (t.includes("touchmove")) return e.preventDefault();
-        debug("Event: " + t);
+        // debug("Event: " + t);
         let XY = XYfromEvent(e);
-        if (XY.x === -1 && XY.y === -1) XY = lastTouch;
+        // if (XY.x === -1 && XY.y === -1) XY = lastTouch;
         Object.defineProperty(e, "clientX", { value: XY.x });
         Object.defineProperty(e, "clientY", { value: XY.y });
         if (XY.x === -1 && XY.y === -1) return;
+        if (t.includes("pointerup"))
+          debug(
+            `<Puent> ${t} [${(XY.x - lastTouch.x).toFixed(5)}, ${(
+              XY.y - lastTouch.y
+            ).toFixed(5)}] ${XY.x.toFixed(5)} ${XY.y.toFixed(5)} `
+          );
         lastTouch = XY;
 
-        // console.log(e);
         listener(e);
       });
       el.addEventListener(t, listenerCch[t].get(listener));
@@ -45,19 +51,22 @@ export function ael(
       // if (type.includes("pointerdown")) e.target.setPointerCapture(e.pointerId);
       if (type.includes("touchdown")) return;
       if (type.includes("touchmove")) return e.preventDefault();
-      debug("Event: " + type);
+      // debug("Event: " + type);
       let XY = XYfromEvent(e);
       if (XY.x === -1 && XY.y === -1) XY = lastTouch;
       Object.defineProperty(e, "clientX", { value: XY.x });
       Object.defineProperty(e, "clientY", { value: XY.y });
       if (XY.x === -1 && XY.y === -1) return;
+      // debug(
+      //   `<Event> ${type} [${(XY.x - lastTouch.x).toFixed(5)}, ${(
+      //     XY.y - lastTouch.y
+      //   ).toFixed(5)}] ${XY.x.toFixed(5)} ${XY.y.toFixed(5)} `
+      // );
       lastTouch = XY;
       listener(e);
     });
     el.addEventListener(type, listenerCch[type].get(listener));
   }
-
-  console.log(listenerCch);
 }
 
 export function rel(

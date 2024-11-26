@@ -30,7 +30,6 @@ let instances: Instance[] = [new Instance()];
 let currentInstance = 0;
 export let getInstance = () => instances[currentInstance];
 export let fabricAdd = (object: IDraw) => {
-  console.log("Add object!", currentInstance, object);
   return instances[currentInstance].fabricAdd(object);
 };
 export let transform = (id: string, dx: number, dy: number, nzi?: number) => {
@@ -95,12 +94,6 @@ const main = () => {
   if (!drawnLayer) return;
   drawnLayer.appendChild(instances[0].instanceElement);
 
-  // watch for resize
-  window.addEventListener("resize", () => {
-    drawCanvas.width = window.innerWidth * CONFIG.SCALE;
-    drawCanvas.height = window.innerHeight * CONFIG.SCALE;
-  });
-
   // paste image
   const pasteImage = (e: ClipboardEvent) => {
     const items = e.clipboardData?.items;
@@ -164,7 +157,7 @@ const main = () => {
   buttons[currentTool].classList.add("active");
   for (let i = 0; i < buttons.length; i++) {
     buttons[i].addEventListener("click", () => {
-      debug("Tool: " + i);
+      debug("<Headr> Tool: " + i);
       if (currentTool == 4 && i == 4) {
         // ask for new dash array
         const dashModal = new CoordinateInputModal(
@@ -240,7 +233,6 @@ const main = () => {
     });
   });
 
-  console.log("Load instance!");
   // instances[0].importInstance(inst);
 
   document.getElementById("export")?.addEventListener("click", async () => {
@@ -252,13 +244,13 @@ const main = () => {
   });
 
   document.getElementById("import")?.addEventListener("click", async () => {
-    console.log("IMPORT!");
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".bin";
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
+      debug(`<Impot> File: ${file.name}`);
       const buffer = await file.arrayBuffer();
 
       const instanceCount = parseInt(
@@ -268,7 +260,7 @@ const main = () => {
 
       let offset = 10;
       instances.length = 0;
-      console.log("Instance count", instanceCount);
+      debug(`<Impot> Instance Count: ${instanceCount}`);
       for (const inst of instances) {
         inst.instanceElement.remove();
       }
@@ -281,7 +273,7 @@ const main = () => {
           ),
           36
         );
-        console.log("Instance size", size);
+        debug(`<Impot> Instance Size: ${size}`);
         offset += 10;
         instances.push(new Instance());
         instances[instances.length - 1].instanceElement.style.display = "none";
@@ -328,7 +320,6 @@ const main = () => {
     updatePageIndicator();
   });
   document.getElementById("undo")?.addEventListener("click", () => {
-    console.log("UNDO!");
     instances[currentInstance].undo();
   });
   document.getElementById("wincap")?.addEventListener("click", () => {
@@ -367,13 +358,15 @@ const main = () => {
           end: { x: number; y: number };
         }
       ) => {
-        console.log(data);
+        debug(
+          `<WinCP> ${data.start.x} ${data.start.y} ${data.end.x} ${data.end.y}`
+        );
         // Fetch image from "image://png" then cut it by data and append it to the canvas
         const img = new Image();
-        img.src = "image://png";
+        img.src = "image://png/" + Date.now();
         img.onload = () => {
-          console.log("IMAGE SCALE", img.width / screenSZ.width);
           const scale = img.width / screenSZ.width;
+          debug(`<WinCP> ${img.width} ${img.height} Scale ${scale}`);
           const canvas = document.createElement("canvas");
           const context = canvas.getContext("2d");
           if (!context) return;
@@ -397,13 +390,6 @@ const main = () => {
           const cutImg = new Image();
           cutImg.src = cutCanvas.toDataURL();
           cutImg.onload = () => {
-            console.log(
-              cutImg.width,
-              cutImg.height,
-              data,
-              cutCanvas.width,
-              cutCanvas.height
-            );
             fabricAdd({
               type: "image",
               image: cutImg,

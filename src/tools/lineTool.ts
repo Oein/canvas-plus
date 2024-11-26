@@ -1,6 +1,7 @@
 import { fabricAdd, getInstance } from "../main";
 import { ael, rel } from "../utils/addEventListener";
 import CONFIG from "../utils/config";
+import debug from "../utils/debugMsg";
 import { getState } from "../utils/state";
 import { IProps, PenType } from "./toolType";
 
@@ -16,7 +17,7 @@ export class LineTool implements PenType {
   }
 
   apply() {
-    console.log("LineTool Apply");
+    debug(`<LinTl> Apply`);
     let startX = 0;
     let startY = 0;
     let dragging = false;

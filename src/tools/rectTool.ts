@@ -1,6 +1,7 @@
 import { fabricAdd, getInstance } from "../main";
 import { ael, rel } from "../utils/addEventListener";
 import CONFIG from "../utils/config";
+import debug from "../utils/debugMsg";
 import { getState } from "../utils/state";
 import { IProps, PenType } from "./toolType";
 
@@ -65,7 +66,7 @@ export class RectTool implements PenType {
   }
 
   apply() {
-    console.log("RectTool Apply");
+    debug(`<RctTl> Apply`);
     const mouseDown = (e: MouseEvent) => {
       this.state.dragging = true;
       this.state.startX = (e.clientX - this.canvas.offsetLeft) * CONFIG.SCALE;

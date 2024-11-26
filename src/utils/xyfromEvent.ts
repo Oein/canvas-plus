@@ -1,6 +1,5 @@
 export default function XYfromEvent(e: MouseEvent | TouchEvent | PointerEvent) {
   if ("targetTouches" in e) {
-    // console.log(e.targetTouches.item(0));
     if (!e.targetTouches.item(0)) return { x: -1, y: -1 };
     else e.preventDefault();
     return {

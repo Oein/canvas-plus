@@ -3,6 +3,7 @@ import { Point } from "../algorithm/polygon";
 import { fabricAdd, getInstance } from "../main";
 import { ael, rel } from "../utils/addEventListener";
 import CONFIG from "../utils/config";
+import debug from "../utils/debugMsg";
 import { getState } from "../utils/state";
 import { IProps, PenType } from "./toolType";
 
@@ -23,7 +24,7 @@ export class PenTool implements PenType {
   points: Point[] = [];
 
   apply() {
-    console.log("PenTool Apply");
+    debug(`<PenTl> Apply`);
     const mouseDown = (e: MouseEvent) => {
       this.state = "DRAW";
       this.points = [
@@ -66,6 +67,7 @@ export class PenTool implements PenType {
         this.points,
         getState("PENSTROKE") || 1
       );
+      debug(`<PenTl> Poly: ${poly.length}`);
       fabricAdd({
         type: "polygon",
         fillColor: getState("PENCOLOR") || "black",

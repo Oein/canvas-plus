@@ -47,7 +47,9 @@ const createWindow = () => {
 
   setTimeout(() => {
     mainWindow.maximize();
-    mainWindow.loadFile(path.join(__dirname, "..", "web", "index.html"));
+    if (process.env.NODE_ENV === "development") {
+      mainWindow.webContents.loadURL("http://localhost:5173");
+    } else mainWindow.loadFile(path.join(__dirname, "..", "web", "index.html"));
 
     mainWindow.webContents.on("dom-ready", () => {
       mainWindow.webContents.send("screen", { width, height });

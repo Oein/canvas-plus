@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cp2el": "rm electron/web/index.html; rm -r electron/web/assets; cp -r dist/* electron/web"
   },
   "devDependencies": {
     "typescript": "^5.7.2",
