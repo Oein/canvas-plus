@@ -506,7 +506,7 @@ export default class Instance {
     }
 
     const area = polygonArea(polygon);
-    if (area < (CONFIG.SCALE * 5) ** 2) {
+    if (area <= 1) {
       return;
     }
 
