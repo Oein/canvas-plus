@@ -1,4 +1,7 @@
+const dm = location.href.includes("debug-mode");
+
 export default function debug(msg: string) {
+  if (!dm) return;
   const ovl = document.getElementById("ovl")!;
   while (ovl.children.length > 25) ovl.removeChild(ovl.children[0]);
   const t = new Date();
