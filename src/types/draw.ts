@@ -60,7 +60,22 @@ export type IDrawPolygon = {
   strokeWidth: number;
 };
 
+export type IDrawPen = {
+  type: "pen";
+  points: Point[];
+
+  strokeColor: string;
+  strokeWidth: number;
+};
+
 export type IDraw =
-  | (IDrawLine | IDrawRect | IDrawTriangle | IDrawImage | IDrawPolygon) & {
+  | (
+      | IDrawLine
+      | IDrawRect
+      | IDrawTriangle
+      | IDrawImage
+      | IDrawPolygon
+      | IDrawPen
+    ) & {
       z?: number;
     };

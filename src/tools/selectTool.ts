@@ -7,7 +7,7 @@ import rotateLine from "../algorithm/rotateLine";
 import rotatePolygon from "../algorithm/rotatePolygon";
 import createThickPolygon from "../algorithm/strokePolygon";
 import { getInstance, transform, fabricAdd } from "../main";
-import { IDrawImage, IDrawLine } from "../types/draw";
+import { IDrawImage, IDrawLine, IDrawPen, IDrawPolygon } from "../types/draw";
 import { ael, rel } from "../utils/addEventListener";
 import CONFIG from "../utils/config";
 import debug from "../utils/debugMsg";
@@ -86,6 +86,7 @@ export class SelectTool implements PenType {
       e.stopPropagation();
       return this.disselect();
     }
+    if (this.workingState == "NONE") return this.destroyBBox();
   }
 
   wk_bindMDN = this.wk_mouseDown.bind(this);
@@ -198,6 +199,35 @@ export class SelectTool implements PenType {
 
     context.setLineDash([]);
   }
+  resize_drawPenGhost(key: string) {
+    const inst = getInstance();
+    const context = inst.drawnLayers[key].t;
+    const object = inst.drawnLayers[key].d as IDrawPen;
+
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    context.strokeStyle = object.strokeColor;
+    context.fillStyle = "transparent";
+    context.lineWidth = object.strokeWidth;
+    context.setLineDash([]);
+
+    context.beginPath();
+    context.moveTo(
+      this.bbox[0].x +
+        (object.points[0].x - this.bbox[0].x) * this.lastScaled.x,
+      this.bbox[0].y + (object.points[0].y - this.bbox[0].y) * this.lastScaled.y
+    );
+    for (let i = 1; i < object.points.length; i++) {
+      context.lineTo(
+        this.bbox[0].x +
+          (object.points[i].x - this.bbox[0].x) * this.lastScaled.x,
+        this.bbox[0].y +
+          (object.points[i].y - this.bbox[0].y) * this.lastScaled.y
+      );
+    }
+    context.stroke();
+    context.closePath();
+    context.setLineDash([]);
+  }
   resize_drawGhost(poly: Polygon, key: string, zIndex: number) {
     const inst = getInstance();
     const context = inst.drawnLayers[key].t;
@@ -207,6 +237,7 @@ export class SelectTool implements PenType {
 
     if (object.type == "line") return this.resize_drawLineGhost(key);
     if (object.type == "image") return this.resize_drawImageGhost(key);
+    if (object.type == "pen") return this.resize_drawPenGhost(key);
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
     context.strokeStyle = "transparent";
 
@@ -289,6 +320,12 @@ export class SelectTool implements PenType {
             this.bbox[0].y + (object.top - this.bbox[0].y) * this.lastScaled.y;
           object.width *= this.lastScaled.x;
           object.height *= this.lastScaled.y;
+          break;
+        case "pen":
+          object.points = object.points.map((p: Point) => ({
+            x: this.bbox[0].x + (p.x - this.bbox[0].x) * this.lastScaled.x,
+            y: this.bbox[0].y + (p.y - this.bbox[0].y) * this.lastScaled.y,
+          }));
           break;
       }
     }
@@ -402,8 +439,8 @@ export class SelectTool implements PenType {
     const object = inst.drawnLayers[key].d as IDrawLine;
 
     const linePoly = createThickPolygon(npoints, object.strokeWidth);
-    this.context.strokeStyle = hslColor(1);
-    this.context.fillStyle = hslColor(0.3);
+    this.context.strokeStyle = object.strokeColor;
+    this.context.fillStyle = object.strokeColor;
     this.context.lineWidth = 3 * CONFIG.SCALE;
     this.context.setLineDash([6, 9]);
     this.context.beginPath();
@@ -480,6 +517,26 @@ export class SelectTool implements PenType {
     context.drawImage(image.image, nrect.x, nrect.y, nrect.width, nrect.height);
     context.restore();
   }
+  rotate_drawPenGhost(poly: Polygon, key: string) {
+    const inst = getInstance();
+    const context = inst.drawnLayers[key].t;
+    const object = inst.drawnLayers[key].d as IDrawPen;
+
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    context.strokeStyle = object.strokeColor;
+    context.fillStyle = "transparent";
+    context.lineWidth = object.strokeWidth;
+    context.setLineDash([]);
+
+    context.beginPath();
+    context.moveTo(poly[0].x, poly[0].y);
+    for (let i = 1; i < poly.length; i++) {
+      context.lineTo(poly[i].x, poly[i].y);
+    }
+    context.stroke();
+    context.closePath();
+    context.setLineDash([]);
+  }
   rotate_drawGhost(poly: Polygon, key: string, zIndex: number) {
     const inst = getInstance();
     const context = inst.drawnLayers[key].t;
@@ -488,6 +545,7 @@ export class SelectTool implements PenType {
 
     if (object.type == "line") return;
     if (object.type == "image") return;
+    if (object.type == "pen") return;
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
     context.strokeStyle = "transparent";
 
@@ -586,6 +644,22 @@ export class SelectTool implements PenType {
         );
         continue;
       }
+      if (objectType === "pen") {
+        const obj = getInstance().drawnLayers[this.selectedObjects[i]]
+          .d as IDrawPolygon;
+        this.rotate_drawPenGhost(
+          rotatePolygon(
+            obj.points,
+            {
+              x: this.mouseStart.x * CONFIG.SCALE,
+              y: this.mouseStart.y * CONFIG.SCALE,
+            },
+            angle
+          ),
+          this.selectedObjects[i]
+        );
+        return;
+      }
       this.rotate_drawGhost(
         rotatePolygon(
           getInstance().drawnPolygons[this.selectedObjects[i]],
@@ -610,6 +684,8 @@ export class SelectTool implements PenType {
     debug(`<SelTl> ROTATE_MOUSEUP`);
     const sv = [...this.selectedObjects];
     this.disselect();
+
+    this.workingState = "SELECTED";
     this.handleSelect(sv);
   }
 
@@ -651,6 +727,11 @@ export class SelectTool implements PenType {
           object.width = nrect.width;
           object.height = nrect.height;
           object.rotate = nrect.rotate;
+
+          break;
+        case "pen":
+          let objt = object as any as IDrawPolygon;
+          objt.points = rotatePolygon(objt.points, center, this.bboxRotate);
 
           break;
         default:

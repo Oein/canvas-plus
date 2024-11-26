@@ -1,4 +1,5 @@
 import computeStrokeOutline from "../algorithm/outStrokePolygon";
+import { generateStrokedPolygon } from "../algorithm/penPolygon";
 import { Polygon, polygonArea } from "../algorithm/polygon";
 import calculateRectangleCorners from "../algorithm/rotatedRect";
 import createThickPolygon from "../algorithm/strokePolygon";
@@ -225,6 +226,7 @@ export default class Instance {
   }
 
   drawPolyToCanvas(object: IDrawPolygon, context: CanvasRenderingContext2D) {
+    context.lineCap = "round";
     context.strokeStyle = object.strokeColor;
     context.fillStyle = object.fillColor;
     context.lineWidth = object.strokeWidth;
@@ -236,6 +238,7 @@ export default class Instance {
     context.closePath();
     context.stroke();
     context.fill();
+    context.lineCap = "butt";
 
     // add points
     // context.fillStyle = "red";
@@ -254,6 +257,23 @@ export default class Instance {
     const context = layer.t;
     context.clearRect(0, 0, layer.c.width, layer.c.height);
     let object = layer.d;
+
+    if (object.type == "pen") {
+      debug(`<Insta> Rerender pen ${id}`);
+      context.strokeStyle = object.strokeColor;
+      context.lineWidth = object.strokeWidth;
+      context.beginPath();
+      context.moveTo(object.points[0].x, object.points[0].y);
+      for (let i = 1; i < object.points.length; i++) {
+        context.lineTo(object.points[i].x, object.points[i].y);
+      }
+      context.stroke();
+      this.drawnPolygons[id] = generateStrokedPolygon(
+        object.points,
+        object.strokeWidth
+      );
+      return;
+    }
 
     let polygon: Polygon = [];
 
@@ -337,6 +357,11 @@ export default class Instance {
       this.drawnLayers[id].d.to.x += dx;
       this.drawnLayers[id].d.to.y += dy;
     }
+    if (this.drawnLayers[id].d.type === "pen") {
+      this.drawnLayers[id].d.points = this.drawnLayers[id].d.points.map((p) => {
+        return { x: p.x + dx, y: p.y + dy };
+      });
+    }
   }
 
   async flipX(id: string, flipCenterX: number, nzi?: number) {
@@ -396,6 +421,12 @@ export default class Instance {
     if (layer.d.type === "line") {
       layer.d.from.x = flipCenterX - (layer.d.from.x - flipCenterX);
       layer.d.to.x = flipCenterX - (layer.d.to.x - flipCenterX);
+    }
+
+    if (layer.d.type === "pen") {
+      layer.d.points = layer.d.points.map((p) => {
+        return { x: flipCenterX - (p.x - flipCenterX), y: p.y };
+      });
     }
   }
 
@@ -457,6 +488,12 @@ export default class Instance {
       layer.d.from.y = flipCenterY - (layer.d.from.y - flipCenterY);
       layer.d.to.y = flipCenterY - (layer.d.to.y - flipCenterY);
     }
+
+    if (layer.d.type === "pen") {
+      layer.d.points = layer.d.points.map((p) => {
+        return { x: p.x, y: flipCenterY - (p.y - flipCenterY) };
+      });
+    }
   }
 
   render(
@@ -474,6 +511,26 @@ export default class Instance {
     if (clear)
       canvas.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
     canvas.canvas.style.zIndex = (object.z || zIndex()).toString();
+
+    if (object.type == "pen") {
+      debug(`<Insta> Render pen ${objectid}`);
+      canvas.strokeStyle = object.strokeColor;
+      canvas.lineWidth = object.strokeWidth;
+      canvas.beginPath();
+      canvas.moveTo(object.points[0].x, object.points[0].y);
+      for (let i = 1; i < object.points.length; i++) {
+        canvas.lineTo(object.points[i].x, object.points[i].y);
+      }
+      canvas.stroke();
+
+      if (saveDrawnPoly)
+        this.drawnPolygons[objectid] = generateStrokedPolygon(
+          object.points,
+          object.strokeWidth
+        );
+      return;
+    }
+
     let polygon: Polygon = [];
 
     switch (object.type) {

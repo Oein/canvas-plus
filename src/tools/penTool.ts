@@ -1,4 +1,3 @@
-import { generateStrokedPolygon } from "../algorithm/penPolygon";
 import { Point } from "../algorithm/polygon";
 import { fabricAdd, getInstance } from "../main";
 import { ael, rel } from "../utils/addEventListener";
@@ -38,6 +37,7 @@ export class PenTool implements PenType {
       this.context.beginPath();
       this.context.strokeStyle = getState("PENCOLOR") || "black";
       this.context.lineWidth = getState("PENSTROKE") || 1;
+      this.context.lineCap = "round";
       this.context.stroke();
     };
     const mouseMove = (e: MouseEvent) => {
@@ -62,18 +62,18 @@ export class PenTool implements PenType {
 
       this.context.closePath();
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.context.lineCap = "butt";
 
-      const poly = generateStrokedPolygon(
-        this.points,
-        getState("PENSTROKE") || 1
-      );
-      debug(`<PenTl> Poly: ${poly.length}`);
+      // const poly = generateStrokedPolygon(
+      //   this.points,
+      //   getState("PENSTROKE") || 1
+      // );
+      debug(`<PenTl> Points: ${this.points.length}`);
       fabricAdd({
-        type: "polygon",
-        fillColor: getState("PENCOLOR") || "black",
-        points: poly,
-        strokeWidth: 0,
-        strokeColor: "transparent",
+        type: "pen",
+        points: [...this.points],
+        strokeWidth: getState("PENSTROKE") || 1,
+        strokeColor: getState("PENCOLOR") || "black",
       });
 
       getInstance().saveAsHistory();
