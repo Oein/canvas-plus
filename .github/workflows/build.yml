@@ -19,6 +19,11 @@ jobs:
         run: npm install
       - name: Build vite
         run: npm run build
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: canvas-plus-web
+          path: ./dist
       - name: Copy files
         run: copy electron\web\wincap.html dist\wincap.html
       - name: Copy files
