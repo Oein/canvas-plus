@@ -209,6 +209,11 @@ export default class Instance {
     context.translate(xAvg, yAvg);
     context.rotate((object.rotate * Math.PI) / 180);
     context.translate(-xAvg, -yAvg);
+    // debug(
+    //   `<Insta> Draw image ${object.left.toFixed(3)} ${object.top.toFixed(
+    //     3
+    //   )} ${xAvg.toFixed(3)} ${yAvg.toFixed(3)}`
+    // );
     context.drawImage(
       object.image,
       object.left,

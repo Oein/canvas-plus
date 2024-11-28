@@ -6,7 +6,7 @@ import rotateRect from "../algorithm/rotateImage";
 import rotateLine from "../algorithm/rotateLine";
 import rotatePolygon from "../algorithm/rotatePolygon";
 import createThickPolygon from "../algorithm/strokePolygon";
-import { getInstance, transform, fabricAdd } from "../main";
+import { getInstance, transform, fabricAdd, canUpdate, updated } from "../main";
 import { IDrawImage, IDrawLine, IDrawPen, IDrawPolygon } from "../types/draw";
 import { ael, rel } from "../utils/addEventListener";
 import CONFIG from "../utils/config";
@@ -39,13 +39,18 @@ export class SelectTool implements PenType {
     | "ROTATE" = "NONE";
   mouseStart: Point = { x: 0, y: 0 };
   lastApplied: Point = { x: 0, y: 0 };
+  lastRendered: Point = { x: 0, y: 0 };
+  lastRenderedAngle: number = 0;
   lastScaled: Point = { x: 0, y: 0 };
   bbox: Polygon = [];
   bboxRotate: number = 0;
 
+  hslCalpha = "";
+  hslC = "";
+
   context_drawSelected(dx = 0, dy = 0) {
-    this.context.strokeStyle = hslColor(1);
-    this.context.fillStyle = hslColor(0.3);
+    this.context.strokeStyle = this.hslC;
+    this.context.fillStyle = this.hslCalpha;
     if (this.bboxElement)
       this.bboxElement.style.background = this.context.fillStyle;
     this.context.lineWidth = 3 * CONFIG.SCALE;
@@ -86,7 +91,10 @@ export class SelectTool implements PenType {
       e.stopPropagation();
       return this.disselect();
     }
-    if (this.workingState == "NONE") return this.destroyBBox();
+    if (this.workingState == "NONE") {
+      this.allowDrawing();
+      return this.destroyBBox();
+    }
   }
 
   wk_bindMDN = this.wk_mouseDown.bind(this);
@@ -175,8 +183,8 @@ export class SelectTool implements PenType {
     };
 
     const linePoly = createThickPolygon([newFrom, newTo], object.strokeWidth);
-    this.context.strokeStyle = hslColor(1);
-    this.context.fillStyle = hslColor(0.3);
+    this.context.strokeStyle = this.hslC;
+    this.context.fillStyle = this.hslCalpha;
     this.context.lineWidth = 3 * CONFIG.SCALE;
     this.context.setLineDash([6, 9]);
     this.context.beginPath();
@@ -248,8 +256,8 @@ export class SelectTool implements PenType {
     context.fillStyle = fillColor;
     context.lineWidth = 0;
 
-    this.context.strokeStyle = hslColor(1);
-    this.context.fillStyle = hslColor(0.3);
+    this.context.strokeStyle = this.hslC;
+    this.context.fillStyle = this.hslCalpha;
     this.context.lineWidth = 3 * CONFIG.SCALE;
     this.context.setLineDash([6, 9]);
 
@@ -343,6 +351,7 @@ export class SelectTool implements PenType {
     );
   }
   resize_handleMove(e: MouseEvent) {
+    if (!canUpdate) return;
     const newMouse = { x: e.clientX, y: e.clientY };
     const DO_RENDER = (() => {
       const dist = pointDistance(this.lastApplied, newMouse);
@@ -352,6 +361,7 @@ export class SelectTool implements PenType {
     })();
 
     if (!DO_RENDER) return;
+    updated();
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     const BBOX_WIDTH = (this.bbox[2].x - this.bbox[0].x) / CONFIG.SCALE;
@@ -556,8 +566,8 @@ export class SelectTool implements PenType {
     context.fillStyle = fillColor;
     context.lineWidth = 0;
 
-    this.context.strokeStyle = hslColor(1);
-    this.context.fillStyle = hslColor(0.3);
+    this.context.strokeStyle = this.hslC;
+    this.context.fillStyle = this.hslCalpha;
     this.context.lineWidth = 3 * CONFIG.SCALE;
     this.context.setLineDash([6, 9]);
 
@@ -593,34 +603,52 @@ export class SelectTool implements PenType {
         (this.bbox[0].y + (this.bbox[1].y - this.bbox[0].y) / 2) / CONFIG.SCALE,
     };
     this.lastApplied = { x: e.clientX, y: e.clientY };
+    this.lastRendered = { x: e.clientX, y: e.clientY };
     this.bboxRotate = 0;
+    this.lastRenderedAngle = -1;
   }
   rotate_mouseMove(e: MouseEvent) {
     if (this.workingState !== "ROTATE") return;
+    if (!canUpdate) return;
     const newMouse = { x: e.clientX, y: e.clientY };
-    const DO_RENDER = (() => {
+    const DO_NOT_UPDATE = (() => {
       const dist = pointDistance(this.lastApplied, newMouse);
-      if (dist < 5) return false;
+      if (dist < CONFIG.DO_NOT_UPDATE_DIST) return true;
       this.lastApplied = { x: newMouse.x, y: newMouse.y };
-      return true;
+      return false;
     })();
-
-    if (!DO_RENDER) return;
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     const dx = newMouse.x - this.mouseStart.x;
     const dy = newMouse.y - this.mouseStart.y;
     const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
 
+    const DO_NOT_RENDER = (() => {
+      if (this.lastRenderedAngle === -1) {
+        this.lastRenderedAngle = angle;
+        return false;
+      }
+      if (Math.abs(this.lastRenderedAngle - angle) < CONFIG.DO_NOT_RENDER_ANGLE)
+        return true;
+      this.lastRenderedAngle = angle;
+      return false;
+    })();
+
+    if (DO_NOT_UPDATE && DO_NOT_RENDER) return;
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
     this.bboxElement!.style.transform = `rotate(${angle}deg)`;
     this.bboxRotate = angle;
     const zi = zIndex();
+    if (DO_NOT_RENDER) return;
+    updated();
     for (let i = 0; i < this.selectedObjects.length; i++) {
       const objectType =
         getInstance().drawnLayers[this.selectedObjects[i]].d.type;
+
       if (objectType === "line") {
         const obj = getInstance().drawnLayers[this.selectedObjects[i]]
           .d as IDrawLine;
+        debug(`<SelTl> ROTATE_MOUSEMOVE ${this.selectedObjects[i]}`);
         this.rotate_drawLineGhost(
           rotateLine(
             {
@@ -634,6 +662,7 @@ export class SelectTool implements PenType {
           ),
           this.selectedObjects[i]
         );
+        continue;
       }
       if (objectType === "image") {
         this.rotate_drawImageGhost(
@@ -658,7 +687,7 @@ export class SelectTool implements PenType {
           ),
           this.selectedObjects[i]
         );
-        return;
+        continue;
       }
       this.rotate_drawGhost(
         rotatePolygon(
@@ -686,7 +715,9 @@ export class SelectTool implements PenType {
     this.disselect();
 
     this.workingState = "SELECTED";
-    this.handleSelect(sv);
+    setTimeout(() => {
+      this.handleSelect(sv);
+    }, 10);
   }
 
   rotate_applyPoly() {
@@ -783,26 +814,37 @@ export class SelectTool implements PenType {
 
     this.mouseStart = { x: e.clientX, y: e.clientY };
     this.lastApplied = { x: e.clientX, y: e.clientY };
+    this.lastRendered = { x: e.clientX, y: e.clientY };
     this.workingState = "BBOX_MOVE";
 
     if (this.bboxElement) this.bboxElement.style.cursor = "grabbing";
   }
   bbox_mouseMove() {}
   bbox_handleMove(e: MouseEvent) {
+    if (!canUpdate) return;
     const newMouse = { x: e.clientX, y: e.clientY };
     const dx = newMouse.x - this.lastApplied.x;
     const dy = newMouse.y - this.lastApplied.y;
 
     const inst = getInstance();
 
-    const DO_RENDER = (() => {
+    const DO_NOT_UPDATE = (() => {
       const dist = pointDistance(this.lastApplied, newMouse);
-      if (dist < 5) return false;
+      if (dist < CONFIG.DO_NOT_UPDATE_DIST) return true;
       this.lastApplied = { x: newMouse.x, y: newMouse.y };
-      return true;
+      return false;
     })();
 
-    if (!DO_RENDER) return;
+    const DO_NOT_RENDER = (() => {
+      const dist = pointDistance(this.lastRendered, newMouse);
+      if (DO_NOT_UPDATE) return true;
+      if (dist < CONFIG.DO_NOT_RENDER_DIST) return true;
+      this.lastRendered = { x: newMouse.x, y: newMouse.y };
+      return false;
+    })();
+
+    if (DO_NOT_UPDATE) return;
+    updated();
     const zi = zIndex();
     for (let i = 0; i < this.selectedObjects.length; i++) {
       transform(
@@ -811,10 +853,11 @@ export class SelectTool implements PenType {
         dy * CONFIG.SCALE,
         zi
       );
+      if (DO_NOT_RENDER) continue;
       inst.rerender(this.selectedObjects[i]);
     }
     this.bbox_transform(dx, dy);
-    this.context_drawSelected(dx, dy);
+    if (!DO_NOT_RENDER) this.context_drawSelected(dx, dy);
   }
   bbox_mouseUp(e: MouseEvent) {
     if (this.workingState != "BBOX_MOVE") return;
@@ -824,6 +867,10 @@ export class SelectTool implements PenType {
 
     getInstance().saveAsHistory();
     if (this.bboxElement) this.bboxElement.style.cursor = "grab";
+
+    for (const key of this.selectedObjects) {
+      getInstance().rerender(key);
+    }
   }
 
   bbox_transform(dx: number, dy: number) {
@@ -995,11 +1042,14 @@ export class SelectTool implements PenType {
       let id: string[] = [];
       for (let i = 0; i < this.selectedObjects.length; i++) {
         id.push(
-          fabricAdd(getInstance().drawnLayers[this.selectedObjects[i]].d)
+          fabricAdd({ ...getInstance().drawnLayers[this.selectedObjects[i]].d })
         );
       }
       this.disselect();
-      this.handleSelect(id);
+
+      setTimeout(() => {
+        this.handleSelect(id);
+      }, 10);
 
       getInstance().saveAsHistory();
     });
@@ -1066,8 +1116,13 @@ export class SelectTool implements PenType {
   selectedObjects: string[] = [];
 
   handleSelect(selected: string[]) {
+    this.hslC = hslColor(1);
+    this.hslCalpha = hslColor(0.3);
+
     this.selectedObjects = selected;
     const inst = getInstance();
+
+    debug(`<SelTl> HandleSelect ${selected.join(", ")} objects`);
 
     let polygons = selected.map((key) => inst.drawnPolygons[key]);
     let bbox = computeBoundingRectangle(polygons);
@@ -1100,8 +1155,10 @@ export class SelectTool implements PenType {
     };
   }
   canvas_mouseMove(e: MouseEvent) {
+    if (!canUpdate) return;
     if (!this.canvas_state.dragging) return;
     if (this.workingState !== "SELECTING") return;
+    updated();
     const x = (e.clientX - this.canvas.offsetLeft) * CONFIG.SCALE;
     const y = (e.clientY - this.canvas.offsetTop) * CONFIG.SCALE;
 
@@ -1164,7 +1221,10 @@ export class SelectTool implements PenType {
 
       selected.push(key);
     }
-    if (selected.length === 0) return;
+    if (selected.length === 0) {
+      this.allowDrawing();
+      return;
+    }
     this.handleSelect(selected);
     this.context_drawSelected();
   }

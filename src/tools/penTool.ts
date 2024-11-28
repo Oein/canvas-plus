@@ -48,7 +48,7 @@ export class PenTool implements PenType {
       const dist = Math.sqrt(
         (x - this.lastApplied.x) ** 2 + (y - this.lastApplied.y) ** 2
       );
-      if (dist < 3) return;
+      if (dist < 0.1) return;
 
       this.points.push({ x: x * CONFIG.SCALE, y: y * CONFIG.SCALE });
       this.lastApplied = { x, y };

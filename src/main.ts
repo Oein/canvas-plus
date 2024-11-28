@@ -28,6 +28,8 @@ import debug from "./utils/debugMsg";
 
 let instances: Instance[] = [new Instance()];
 let currentInstance = 0;
+export let canUpdate = false;
+export let updated = () => (canUpdate = false);
 export let getInstance = () => instances[currentInstance];
 export let fabricAdd = (object: IDraw) => {
   return instances[currentInstance].fabricAdd(object);
@@ -423,29 +425,44 @@ const main = () => {
   document.getElementById("textbtn")?.addEventListener("click", () => {
     const modal = new TextInputModal((text) => {
       if (!text) return;
-      const img = renderTextToImageWebPTransparent(text);
+      const imgURL = renderTextToImageWebPTransparent(text);
+      const img = new Image();
       img.onload = () => {
-        const [width, height] = [img.width, img.height];
+        let [width, height] = [img.width, img.height];
+        width /= CONFIG.TEXT_RES;
+        height /= CONFIG.TEXT_RES;
+
+        const GLOBAL_PADDING = CONFIG.IMAGE_GLOBAL_PADDING;
+
         let scale = 1;
-        if (width > window.innerWidth) {
-          scale = window.innerWidth / width;
+        if (width > window.innerWidth - GLOBAL_PADDING) {
+          scale = (window.innerWidth - GLOBAL_PADDING) / width;
         }
-        if (height * scale > window.innerHeight) {
-          scale = window.innerHeight / height;
+        if (height * scale > window.innerHeight - GLOBAL_PADDING) {
+          scale = (window.innerHeight - GLOBAL_PADDING) / height;
         }
+        debug(`<Text> ${width} ${height} ${scale}`);
         fabricAdd({
           type: "image",
           image: img,
           left: ((window.innerWidth - width * scale) / 2) * CONFIG.SCALE,
           top: ((window.innerHeight - height * scale) / 2) * CONFIG.SCALE,
           rotate: 0,
-          width: width * scale,
-          height: height * scale,
+          width: width * scale * CONFIG.SCALE,
+          height: height * scale * CONFIG.SCALE,
           z: zIndex(),
         });
       };
+      img.src = imgURL;
+      debug(`<Text> ${imgURL.slice(0, 100)}`);
     });
     modal.open();
   });
+
+  const aniframe = () => {
+    canUpdate = true;
+    requestAnimationFrame(aniframe);
+  };
+  requestAnimationFrame(aniframe);
 };
 main();
